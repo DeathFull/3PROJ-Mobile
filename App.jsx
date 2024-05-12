@@ -5,57 +5,32 @@ import { createStackNavigator } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import SettingsScreen from './src/screens/SettingsScreen';
 import MyAccount from './src/screens/MyAccount';
-import AboutScreen from './src/screens/AboutScreen';
-import HomeScreen from './src/screens/HomeScreen';
-import WelcomeScreen from './src/screens/WelcomeScreen';
 
 const Stack = createStackNavigator();
 const Drawer = createDrawerNavigator();
 
 export default function App() {
-    const [isFirstLaunch, setIsFirstLaunch] = useState(null);
+    const [isTokenExists, setIsTokenExists] = useState(false);
 
     useEffect(() => {
-        async function clearAndCheckFirstLaunch() {
+        async function checkToken() {
             try {
-                await clearFirstLaunch();
-                const value = await AsyncStorage.getItem('alreadyLaunched');
-                if (value === null) {
-                    // First launch
-                    setIsFirstLaunch(true);
-                    await AsyncStorage.setItem('alreadyLaunched', 'true');
-                } else {
-                    // Not first launch
-                    setIsFirstLaunch(false);
-                }
+                const token = await AsyncStorage.getItem('token');
+                setIsTokenExists(token !== null);
             } catch (error) {
-                console.error('Error checking first launch:', error);
+                console.error('Error checking token:', error);
             }
         }
-
-        clearAndCheckFirstLaunch();
+        checkToken();
     }, []);
-
-    async function clearFirstLaunch() {
-        try {
-            await AsyncStorage.removeItem('alreadyLaunched');
-            console.log('Value for alreadyLaunched has been cleared successfully.');
-        } catch (error) {
-            console.error('Error clearing value for alreadyLaunched:', error);
-        }
-    }
-
-    if (isFirstLaunch === null) {
-        return null;
-    }
 
     return (
         <NavigationContainer>
             <Stack.Navigator>
-                {isFirstLaunch ? (
-                    <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
-                ) : (
+                {isTokenExists ? (
                     <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
+                ) : (
+                    <Stack.Screen name="Welcome" component={MainDrawer} options={{ headerShown: false }} />
                 )}
             </Stack.Navigator>
         </NavigationContainer>
@@ -74,8 +49,6 @@ function MainDrawer() {
         >
             <Drawer.Screen name="Mon Compte" component={MyAccount} />
             <Drawer.Screen name="Paramètres" component={SettingsScreen} />
-            <Drawer.Screen name="A Propos" component={AboutScreen} />
-            <Drawer.Screen name="Accueil" component={HomeScreen} />
         </Drawer.Navigator>
     );
 }

@@ -5,17 +5,20 @@
     "@chakra-ui/system": "^2.0.0",
     "@emotion/react": "11.0.0",
     "@emotion/styled": "11.0.0",
+    "@expo-google-fonts/roboto": "^0.2.3",
     "@expo/vector-icons": "^14.0.0",
     "@react-native-async-storage/async-storage": "^1.23.1",
     "@react-navigation/drawer": "^6.6.15",
     "@react-navigation/native": "*",
     "@react-navigation/stack": "*",
-    "expo": "^50.0.17",
+    "axios": "^1.6.8",
+    "expo": "^51.0.1",
+    "expo-font": "~12.0.5",
     "framer-motion": "^4.0.0",
     "react": "^18.2.0",
     "react-icons": "5.1.0",
-    "react-native": "^0.73.6",
+    "react-native": "^0.74.1",
     "react-native-elements": "*",
-    "react-native-reanimated": "~3.6.2"
+    "react-native-reanimated": "^3.10.0"
   }
 }

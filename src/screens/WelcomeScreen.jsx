@@ -16,7 +16,6 @@ function WelcomeScreen() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>UniFinance</Text>
-            <Text style={styles.subtitle}>Welcome Screen</Text>
             <TouchableOpacity style={styles.button} onPress={goToLoginPage}>
                 <Text style={styles.buttonText}>Je m'authentifie</Text>
             </TouchableOpacity>

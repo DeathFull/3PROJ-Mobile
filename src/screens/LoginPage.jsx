@@ -1,38 +1,80 @@
-import React, { useState } from 'react';
+import React, { useContext,useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, TextInput } from 'react-native';
-import { MaterialIcons , AntDesign} from '@expo/vector-icons';
+import { MaterialIcons, AntDesign, Ionicons } from '@expo/vector-icons';
+import instance from '../api/ApiConfig';
+import {AuthContext} from "../context/AuthContext";
+import { useNavigation } from '@react-navigation/native';
+
 function LoginPage() {
+    const navigation = useNavigation();
     const [selectedButton, setSelectedButton] = useState('login');
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
+    const [firstname, setFirstname] = useState('');
+    const [lastname, setLastname] = useState('');
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
+    const [successMessage, setSuccessMessage] = useState('');
 
     const handleButtonPress = (buttonType) => {
         setSelectedButton(buttonType);
     };
+    const authContext = useContext(AuthContext)
 
     const handleLogin = () => {
-        console.log("Je me connecte avec : ", username, password);
-        // Ajoutez ici la logique de connexion
+        instance.post('users/login', {email, password})
+            .then(response => {
+                const token = response.data.token
+                authContext.setToken(token);
+
+            })
+            .catch(error => {
+                console.log(error.data)
+            });
     };
 
     const handleRegister = () => {
-        console.log("Je m'enregistre avec : ", username, email, password);
-        // Ajoutez ici la logique d'enregistrement
+        if (!firstname || !lastname || !email || !password) {
+            setErrorMessage("Veuillez remplir tous les champs");
+            return;
+        }
+        if (password.length < 8) {
+            setErrorMessage("Le mot de passe doit contenir au moins 6 caractères");
+            return;
+        }
+        instance.post('users/register', { firstname, lastname, email, password })
+            .then(response => {
+                setSuccessMessage("Enregistrement réussi !");
+                const token = r.data.token
+                authContext.setToken(token);
+
+            })
+            .catch(error => {
+                setErrorMessage("Cette adresse email existe déjà ");
+            });
     };
 
-    const handleGoogleLogin = () => {
-        console.log("Connexion via Google");
-        // Ajoutez ici la logique de connexion via Google
+    const handleGoogleLogin = async () => {
+        try {
+            // Google
+        } catch (error) {
+            setErrorMessage("Une erreur s'est produite lors de la connexion via Google : ");
+            setSuccessMessage('');
+        }
     };
 
-    const handleFacebookLogin = () => {
-        console.log("Connexion via Facebook");
-        // Ajoutez ici la logique de connexion via Facebook
+    const handleFacebookLogin = async () => {
+        try {
+            // Facebook
+        } catch (error) {
+            setErrorMessage("Une erreur s'est produite lors de la connexion via Facebook : ");
+            setSuccessMessage('');
+        }
     };
 
     return (
         <View style={styles.container}>
+            {errorMessage !== '' && <Text style={styles.errorMessage}>{errorMessage}</Text>}
+            {successMessage !== '' && <Text style={styles.successMessage}>{successMessage}</Text>}
             <View style={styles.buttonContainer}>
                 <TouchableOpacity
                     style={[styles.button, selectedButton === 'login' && styles.selectedButton]}
@@ -53,9 +95,9 @@ function LoginPage() {
                 <View style={styles.formContainer}>
                     <TextInput
                         style={styles.input}
-                        placeholder="Nom d'utilisateur"
-                        onChangeText={setUsername}
-                        value={username}
+                        placeholder="Email"
+                        onChangeText={setEmail}
+                        value={email}
                     />
                     <TextInput
                         style={styles.input}
@@ -76,15 +118,21 @@ function LoginPage() {
                 <View style={styles.formContainer}>
                     <TextInput
                         style={styles.input}
-                        placeholder="Adresse Email"
-                        onChangeText={setEmail}
-                        value={email}
+                        placeholder="Prénom"
+                        onChangeText={setFirstname}
+                        value={firstname}
                     />
                     <TextInput
                         style={styles.input}
-                        placeholder="Nom d'utilisateur"
-                        onChangeText={setUsername}
-                        value={username}
+                        placeholder="Nom"
+                        onChangeText={setLastname}
+                        value={lastname}
+                    />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="Email"
+                        onChangeText={setEmail}
+                        value={email}
                     />
                     <TextInput
                         style={styles.input}
@@ -103,19 +151,18 @@ function LoginPage() {
             )}
             <View style={styles.externalLoginContainer}>
                 <TouchableOpacity
-                    style={styles.externalLoginButton}
+                    style={[styles.externalLoginButton, { justifyContent: 'center' }]}
                     onPress={handleGoogleLogin}
                 >
                     <Text style={styles.externalLoginButtonText}>Se connecter via Google</Text>
                     <AntDesign name="google" size={24} color="white" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={styles.externalLoginButton}
+                    style={[styles.externalLoginButton, { justifyContent: 'center' }]}
                     onPress={handleFacebookLogin}
                 >
                     <Text style={styles.externalLoginButtonText}>Se connecter via Facebook</Text>
                     <AntDesign name="facebook-square" size={24} color="white" />
-
                 </TouchableOpacity>
             </View>
         </View>
@@ -194,11 +241,18 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flexDirection: 'row',
     },
-
     externalLoginButtonText: {
         color: 'white',
         fontSize: 16,
         fontWeight: 'bold',
         marginRight: 8,
+    },
+    errorMessage: {
+        color: 'red',
+        marginBottom: 10,
+    },
+    successMessage: {
+        color: 'green',
+        marginBottom: 10,
     },
 });
