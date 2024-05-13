@@ -1,11 +1,11 @@
-import axios from "axios";
+        import axios from "axios";
 
-const instance = axios.create({
-    baseURL: "https://api.uni-finance.fr/",
-    timeout: 1000,
-    headers: {
-        "Content-Type": "application/json",
-    },
-});
+        const instance = axios.create({
+            baseURL: "https://api.uni-finance.fr/",
+            timeout: 1000,
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
 
-export default instance;
+        export default instance;
