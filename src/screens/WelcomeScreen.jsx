@@ -1,12 +1,26 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import LoginPage from "./LoginPage";
+import LoginPage from './LoginPage';
 
 const Stack = createStackNavigator();
 
-function WelcomeScreen() {
+export default function WelcomeScreen() {
+    return (
+        <Stack.Navigator>
+            <Stack.Screen name="Welcome" component={WelcomeContent} options={{
+                headerStyle: {
+                    backgroundColor: '#D27E00',
+                },
+                headerTintColor: 'white',
+            }} />
+            <Stack.Screen name="LoginPage" component={LoginPage} options={{headerShown:false}} />
+        </Stack.Navigator>
+    );
+}
+
+function WelcomeContent() {
     const navigation = useNavigation();
 
     const goToLoginPage = () => {
@@ -23,20 +37,6 @@ function WelcomeScreen() {
     );
 }
 
-function WelcomeStack() {
-    return (
-        <Stack.Navigator screenOptions={{
-            headerStyle: {
-                backgroundColor: '#D27E00',
-            },
-            headerTintColor: 'white',
-        }}>
-            <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="LoginPage" component={LoginPage} />
-        </Stack.Navigator>
-    );
-}
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -47,11 +47,6 @@ const styles = StyleSheet.create({
         fontSize: 32,
         fontWeight: 'bold',
         marginBottom: 16,
-    },
-    subtitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#666',
     },
     button: {
         backgroundColor: '#D27E00',
@@ -65,5 +60,3 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 });
-
-export default WelcomeStack;

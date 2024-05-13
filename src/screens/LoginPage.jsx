@@ -1,16 +1,24 @@
 import React, { useContext, useState } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, TextInput } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image } from 'react-native';
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import instance from '../api/ApiConfig';
 import { AuthContext } from "../context/AuthContext";
-import { useNavigation } from '@react-navigation/native';
-import { createStackNavigator } from "@react-navigation/stack";
-import MyAccount from "./MyAccount";
-import AsyncStorage from "@react-native-async-storage/async-storage/src/AsyncStorage";
+import { useNavigation,CommonActions} from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import MainDrawer from "../components/MainDrawer";
 
 const Stack = createStackNavigator();
 
-function LoginPage() {
+export default function LoginPage() {
+    return (
+        <Stack.Navigator>
+            <Stack.Screen name="Login" component={LoginContent} options={{ headerShown: false }} />
+            <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
+        </Stack.Navigator>
+    );
+}
+
+function LoginContent() {
     const navigation = useNavigation();
     const [selectedButton, setSelectedButton] = useState('login');
     const [firstname, setFirstname] = useState('');
@@ -31,16 +39,8 @@ function LoginPage() {
                 const token = response.data.token;
                 authContext.setToken(token);
                 setSuccessMessage("Connexion réussie !");
-                console.log("Token récupéré :", token);
-                navigation.navigate('MyAccount');
- /*               AsyncStorage.getItem("token")
-                    .then(storedToken => {
-                        console.log("Token récupéré depuis AsyncStorage dans handleLogin :", storedToken);
-                    })
-                    .catch(error => {
-                        console.error("Erreur lors de la récupération du token depuis AsyncStorage dans handleLogin :", error);
-                    });
-   */         })
+                navigation.navigate(MainDrawer)
+            })
             .catch(error => {
                 setErrorMessage("Email ou mot de passe incorrect");
                 console.error(error);
@@ -61,7 +61,7 @@ function LoginPage() {
                 setSuccessMessage("Enregistrement réussi !");
                 const token = response.data.token;
                 authContext.setToken(token);
-                navigation.navigate('MyAccount');
+                navigation.navigate(MainDrawer)
             })
             .catch(error => {
                 setErrorMessage("Cette adresse email existe déjà");
@@ -69,7 +69,9 @@ function LoginPage() {
             });
     };
 
-    const handleGoogleLogin = async () => {
+
+
+const handleGoogleLogin = async () => {
         try {
             // Google login logic
         } catch (error) {
@@ -89,6 +91,10 @@ function LoginPage() {
 
     return (
         <View style={styles.container}>
+            <Image
+                source={require('../assets/logo uni-finance.png')}
+                style={styles.logo}
+            />
             {errorMessage !== '' && <Text style={styles.errorMessage}>{errorMessage}</Text>}
             {successMessage !== '' && <Text style={styles.successMessage}>{successMessage}</Text>}
             <View style={styles.buttonContainer}>
@@ -185,39 +191,29 @@ function LoginPage() {
     );
 }
 
-function LoginStack() {
-    return (
-        <Stack.Navigator screenOptions={{
-            headerStyle: {
-                backgroundColor: '#D27E00',
-            },
-            headerTintColor: 'white',
-        }}>
-            <Stack.Screen name="Welcome" component={LoginPage} options={{ headerShown: false }} />
-            <Stack.Screen name={"MyAccount"} component={MyAccount} options={{ headerShown: false }} />
-        </Stack.Navigator>
-    );
-}
-
-export default LoginStack;
-
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        justifyContent: 'flex-start',
+        justifyContent: 'center',
         alignItems: 'center',
-        paddingTop: 50,
+        backgroundColor: '#FFFFFF',
+    },
+    logo: {
+        width: 150,
+        height: 150,
+        resizeMode: 'contain',
+        marginBottom: 20,
     },
     buttonContainer: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
+        marginTop: 24,
     },
     button: {
         backgroundColor: 'white',
         padding: 12,
         borderRadius: 8,
-        marginTop: 24,
         marginHorizontal: 10,
         flexDirection: 'row',
         alignItems: 'center',
@@ -235,7 +231,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#D27E00',
     },
     formContainer: {
-        width: '100%',
+        width: '80%', // Ajuste la largeur du formulaire
         marginTop: 20,
         paddingHorizontal: 20,
     },

@@ -2,17 +2,15 @@ import React, { useContext } from 'react';
 import { View, Text, Button } from 'react-native';
 import { AuthContext } from "../context/AuthContext";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
-function SettingsScreen() {
+export default function SettingsScreen() {
     const { setToken } = useContext(AuthContext);
-
     const handleLogout = async () => {
         try {
+            setToken("")
             await AsyncStorage.removeItem("token");
-            setToken(undefined);
             AsyncStorage.getItem("token")
                 .then(storedToken => {
-                    console.log("Token récupéré depuis AsyncStorage dans handleLogin :", storedToken);
+                    console.log("Teazeazezoken récupéré depuis AsyncStorage dans handleLogin :", storedToken);
                 })
                 .catch(error => {
                     console.error("Erreur lors de la récupération du token depuis AsyncStorage dans handleLogin :", error);
@@ -29,5 +27,3 @@ function SettingsScreen() {
         </View>
     );
 }
-
-export default SettingsScreen;

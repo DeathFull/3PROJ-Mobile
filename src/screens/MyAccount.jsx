@@ -10,11 +10,13 @@ function MyAccount() {
     };
 
     return (
+
         <View style={styles.container}>
             <View style={styles.ribContainer}>
                 <Text style={styles.ribText}>1234 5678 9012 3456</Text>
             </View>
             <Text style={styles.groupText}>Mes groupes</Text>
+
 
             <TouchableOpacity style={styles.addButton} onPress={toggleModal}>
                 <Ionicons name="add" size={24} color="white" />
