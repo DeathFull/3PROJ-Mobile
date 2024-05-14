@@ -1,25 +1,12 @@
-import React, { useContext, useState } from 'react';
+import React, {  useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image } from 'react-native';
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import instance from '../api/ApiConfig';
-import { AuthContext } from "../context/AuthContext";
-import { useNavigation,CommonActions} from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
 import MainDrawer from "../components/MainDrawer";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const Stack = createStackNavigator();
 
-export default function LoginPage() {
-    return (
-        <Stack.Navigator>
-            <Stack.Screen name="Login" component={LoginContent} options={{ headerShown: false }} />
-            <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
-        </Stack.Navigator>
-    );
-}
-
-function LoginContent() {
-    const navigation = useNavigation();
+export default function LoginPage({navigation}) {
     const [selectedButton, setSelectedButton] = useState('login');
     const [firstname, setFirstname] = useState('');
     const [lastname, setLastname] = useState('');
@@ -27,7 +14,6 @@ function LoginContent() {
     const [password, setPassword] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
-    const authContext = useContext(AuthContext);
 
     const handleButtonPress = (buttonType) => {
         setSelectedButton(buttonType);
@@ -37,7 +23,7 @@ function LoginContent() {
         instance.post('users/login', { email, password })
             .then(response => {
                 const token = response.data.token;
-                authContext.setToken(token);
+                AsyncStorage.setItem("token", token);
                 setSuccessMessage("Connexion réussie !");
                 navigation.navigate(MainDrawer)
             })
@@ -60,7 +46,7 @@ function LoginContent() {
             .then(response => {
                 setSuccessMessage("Enregistrement réussi !");
                 const token = response.data.token;
-                authContext.setToken(token);
+                AsyncStorage.setItem("token", token);
                 navigation.navigate(MainDrawer)
             })
             .catch(error => {
@@ -92,7 +78,7 @@ const handleGoogleLogin = async () => {
     return (
         <View style={styles.container}>
             <Image
-                source={require('../assets/logo uni-finance.png')}
+                source={require('../assets/logo-unifinance.png')}
                 style={styles.logo}
             />
             {errorMessage !== '' && <Text style={styles.errorMessage}>{errorMessage}</Text>}

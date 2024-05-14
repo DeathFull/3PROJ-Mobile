@@ -1,27 +1,16 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import LoginPage from './LoginPage';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const Stack = createStackNavigator();
 
-export default function WelcomeScreen() {
-    return (
-        <Stack.Navigator>
-            <Stack.Screen name="Welcome" component={WelcomeContent} options={{
-                headerStyle: {
-                    backgroundColor: '#D27E00',
-                },
-                headerTintColor: 'white',
-            }} />
-            <Stack.Screen name="LoginPage" component={LoginPage} options={{headerShown:false}} />
-        </Stack.Navigator>
-    );
-}
-
-function WelcomeContent() {
-    const navigation = useNavigation();
+export default function WelcomeScreen({ navigation }) {
+    AsyncStorage.getItem("token")
+        .then(storedToken => {
+            console.log("Welcome Screen:", storedToken);
+        })
+        .catch(error => {
+            console.error("Erreur lors de la récupération du token depuis AsyncStorage dans handleLogin :", error);
+        });
 
     const goToLoginPage = () => {
         navigation.navigate('LoginPage');

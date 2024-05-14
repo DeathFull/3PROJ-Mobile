@@ -1,20 +1,15 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { View, Text, Button } from 'react-native';
-import { AuthContext } from "../context/AuthContext";
+import { CommonActions } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-export default function SettingsScreen() {
-    const { setToken } = useContext(AuthContext);
+
+
+export default function SettingsScreen({navigation}) {
+
     const handleLogout = async () => {
         try {
-            setToken("")
-            await AsyncStorage.removeItem("token");
-            AsyncStorage.getItem("token")
-                .then(storedToken => {
-                    console.log("Teazeazezoken récupéré depuis AsyncStorage dans handleLogin :", storedToken);
-                })
-                .catch(error => {
-                    console.error("Erreur lors de la récupération du token depuis AsyncStorage dans handleLogin :", error);
-                });
+            await AsyncStorage.removeItem('token');
+            navigation.navigate('WelcomeScreen');
         } catch (error) {
             console.error('Error logging out:', error);
         }

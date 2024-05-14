@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, Button } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-function MyAccount() {
+export default function MyAccount() {
     const [showModal, setShowModal] = useState(false);
-
+    AsyncStorage.getItem("token")
+        .then(storedToken => {
+            console.log("Token test ta capté récupéré depuis AsyncStoragec:", storedToken);
+        })
+        .catch(error => {
+            console.error("Erreur lors de la récupération du token depuis AsyncStorage dans handleLogin :", error);
+        });
     const toggleModal = () => {
         setShowModal(!showModal);
     };
@@ -100,4 +107,4 @@ const styles = StyleSheet.create({
     },
 });
 
-export default MyAccount;
+
