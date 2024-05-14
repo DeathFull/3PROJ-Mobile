@@ -12,7 +12,21 @@ export const checkLoggedIn = async () => {
                         Authorization: `Bearer ${storedToken}`
                     }
                 });
-                console.log("User data: ", response.data);
+                const userData = response.data;
+                console.log("User data: ", userData);
+                AsyncStorage.setItem("userData", JSON.stringify(userData))
+                    .then(() => {
+                        AsyncStorage.getItem("userData")
+                            .then(storedData => {
+                                console.log("UserData Stored:", storedData);
+                            })
+                            .catch(error => {
+                                console.error("Erreur lors de la récupération des données utilisateur depuis AsyncStorage :", error);
+                            });
+                    })
+                    .catch(error => {
+                        console.error("Erreur lors de la sauvegarde des données utilisateur dans AsyncStorage :", error);
+                    });
                 return { isLoggedIn: true, userData: response.data };
             } catch (error) {
                 console.error("Erreur lors de la récupération des informations utilisateur :", error);
