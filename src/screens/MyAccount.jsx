@@ -1,31 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, ScrollView, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import instance from '../api/ApiConfig';
 import { checkLoggedIn } from '../components/checkLoggedIn';
+import { useFocusEffect } from '@react-navigation/native';
 
-export default function MyAccount() {
+export default function MyAccount({ navigation }) {
     const [showIbanModal, setShowIbanModal] = useState(false);
     const [showGroupModal, setShowGroupModal] = useState(false);
     const [showOptionsModal, setShowOptionsModal] = useState(false);
     const [userData, setUserData] = useState(null);
     const [iban, setIban] = useState('');
     const [groupName, setGroupName] = useState('');
+    const [groupDescription, setGroupDescription] = useState('');
+    const [groups, setGroups] = useState([]);
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        const initializeUserData = async () => {
-            const { isLoggedIn, userData } = await checkLoggedIn();
-            if (isLoggedIn) {
-                setUserData(userData);
-            }
-        };
+    const initializeUserData = async () => {
+        const { isLoggedIn, userData } = await checkLoggedIn();
+        if (isLoggedIn) {
+            setUserData(userData);
+            fetchGroups();
+        }
+    };
 
+    useEffect(() => {
         initializeUserData();
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            initializeUserData();
+        }, [])
+    );
+
+    const fetchGroups = async () => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+            const response = await instance.get('/users/groups', {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+            console.log("reponses des groupes", response.data);
+            setGroups(response.data);
+        } catch (error) {
+            console.error("Erreur lors de la récupération des groupes :", error);
+        }
+    };
 
     const toggleIbanModal = () => {
         setShowIbanModal(!showIbanModal);
@@ -68,16 +93,45 @@ export default function MyAccount() {
         }
     };
 
+    const createGroup = async () => {
+        if (!groupName || !groupDescription) {
+            setErrorMessage("Tous les champs sont obligatoires.");
+            return;
+        }
+
+        const userId = userData._id;
+        const token = await AsyncStorage.getItem('token');
+        const members = [userId];
+
+        try {
+            const response = await instance.post("/groups",
+                { name: groupName, members, description: groupDescription, userId },
+                { headers: { Authorization: `Bearer ${token}` } });
+
+            console.log("Groupe créé", response.data);
+            setSuccessMessage("Groupe créé avec succès !");
+            fetchGroups();
+            toggleGroupModal();
+        } catch (error) {
+            setErrorMessage("Erreur lors de la création du groupe");
+            console.error("Erreur:", error);
+        }
+    };
+
+    const handleGroupPress = (groupId) => {
+        navigation.navigate('MyGroup', { groupId });
+    };
+
     return (
         <View style={styles.container}>
-            <View style={styles.welcomeContainer}>
-                <Text style={styles.welcomeText}>Bienvenue</Text>
-                {userData && (
-                    <Text style={styles.userDataText}>{userData.firstname} !</Text>
-                )}
-            </View>
-
             <ScrollView contentContainerStyle={styles.scrollContainer}>
+                <View style={styles.welcomeContainer}>
+                    <Text style={styles.welcomeText}>Bienvenue</Text>
+                    {userData && (
+                        <Text style={styles.userDataText}>{userData.firstname} !</Text>
+                    )}
+                </View>
+
                 {userData && userData.iban ? (
                     <View style={styles.cardContainer}>
                         <View style={styles.card}>
@@ -101,6 +155,20 @@ export default function MyAccount() {
                 )}
 
                 <Text style={styles.groupText}>Mes groupes</Text>
+                {groups.map((group) => (
+                    <TouchableOpacity key={group._id} style={styles.cardContainer} onPress={() => handleGroupPress(group._id)}>
+                        <View style={styles.card}>
+                            <View style={styles.groupDetails}>
+                                <Text style={styles.groupTitle}>{group.name}</Text>
+                                <Text>{group.description}</Text>
+                            </View>
+                            <View style={styles.groupInfoContainer}>
+                                <Text style={styles.memberCount}>{group.members.length}</Text>
+                                <FontAwesome name="group" size={24} color="black" />
+                            </View>
+                        </View>
+                    </TouchableOpacity>
+                ))}
             </ScrollView>
 
             <TouchableOpacity style={styles.button} onPress={toggleOptionsModal}>
@@ -154,9 +222,6 @@ export default function MyAccount() {
                         <TouchableOpacity style={styles.menuItem} onPress={() => { toggleOptionsModal(); toggleGroupModal(); }}>
                             <Text style={styles.menuItemText}>Créer un groupe</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItem} onPress={() => console.log("Rejoindre un groupe")}>
-                            <Text style={styles.menuItemText}>Rejoindre un groupe</Text>
-                        </TouchableOpacity>
                         <TouchableOpacity style={styles.menuItem} onPress={toggleOptionsModal}>
                             <Text style={styles.menuItemText}>Fermer</Text>
                         </TouchableOpacity>
@@ -179,9 +244,23 @@ export default function MyAccount() {
                             value={groupName}
                             onChangeText={setGroupName}
                         />
-                        <TouchableOpacity style={styles.submitButton} onPress={toggleGroupModal}>
-                            <Text style={styles.submitButtonText}>Soumettre</Text>
-                        </TouchableOpacity>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="Description"
+                            value={groupDescription}
+                            onChangeText={setGroupDescription}
+                        />
+                        {loading ? (
+                            <ActivityIndicator size="large" color="#0000ff" />
+                        ) : (
+                            <>
+                                <TouchableOpacity style={styles.submitButton} onPress={createGroup}>
+                                    <Text style={styles.submitButtonText}>Soumettre</Text>
+                                </TouchableOpacity>
+                                {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
+                                {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
+                            </>
+                        )}
                         <TouchableOpacity style={styles.closeButton} onPress={toggleGroupModal}>
                             <Text style={styles.closeButtonText}>Fermer</Text>
                         </TouchableOpacity>
@@ -204,12 +283,11 @@ const styles = StyleSheet.create({
     cardContainer: {
         width: '100%',
         alignItems: 'center',
-        marginVertical: 20,
+        marginVertical: 10,
     },
     card: {
         width: '90%',
         padding: 20,
-        marginTop: '20%',
         borderRadius: 10,
         backgroundColor: 'white',
         shadowColor: '#000',
@@ -217,17 +295,35 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
+        flexDirection: 'row', // Ajout de flexDirection pour aligner les enfants horizontalement
+        justifyContent: 'space-between', // Ajout de justifyContent pour espacer les éléments
     },
     ibanText: {
         fontSize: 18,
         fontWeight: 'bold',
     },
-    welcomeContainer: {
-        position: 'absolute',
-        top: 20,
-        left: 20,
+    groupInfoContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+    },
+    memberCount: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginRight: 5,
+    },
+    groupDetails: {
+        flex: 1,
+    },
+    groupTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 5,
+    },
+    welcomeContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 20,
+        marginBottom: 20,
     },
     welcomeText: {
         fontSize: 20,

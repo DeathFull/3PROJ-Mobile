@@ -7,6 +7,7 @@ import { checkLoggedIn } from './src/components/checkLoggedIn';
 import SettingsScreen from "./src/screens/SettingsScreen";
 import LoginPage from "./src/screens/LoginPage";
 import MyAccount from "./src/screens/MyAccount";
+import MyGroup from "./src/screens/MyGroup";
 import { View, Text, ActivityIndicator } from 'react-native';
 
 const Stack = createStackNavigator();
@@ -45,6 +46,12 @@ export default function App() {
                         <Stack.Screen name="MyAccount" component={MyAccount} options={{ headerShown: false }} />
                         <Stack.Screen name="WelcomeScreen" component={WelcomeScreen} options={{ headerShown: false }} />
                         <Stack.Screen name="LoginPage" component={LoginPage} options={{ headerShown: false }} />
+                        <Stack.Screen name="MyGroup" component={MyGroup} screenOptions={{
+                            headerStyle: {
+                                backgroundColor: '#D27E00',
+                            },
+                            headerTintColor: 'white',
+                        }}/>
                     </>
                 ) : (
                     <>
@@ -52,6 +59,12 @@ export default function App() {
                         <Stack.Screen name="LoginPage" component={LoginPage} options={{ headerShown: false }} />
                         <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
                         <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="MyGroup" component={MyGroup} screenOptions={{
+                            headerStyle: {
+                                backgroundColor: '#D27E00',
+                            },
+                            headerTintColor: 'white',
+                        }}/>
                     </>
                 )}
             </Stack.Navigator>
