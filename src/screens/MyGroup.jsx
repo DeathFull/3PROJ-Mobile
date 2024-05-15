@@ -10,7 +10,7 @@ export default function MyGroup({ route, navigation }) {
     const [groupData, setGroupData] = useState(null);
     const [members, setMembers] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [showChoiceModal, setShowChoiceModal] = useState(false);
+    const [showOptions, setShowOptions] = useState(false);
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
     const [email, setEmail] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
@@ -18,7 +18,26 @@ export default function MyGroup({ route, navigation }) {
 
     useEffect(() => {
         fetchGroupData();
-    }, []);
+        navigation.setOptions({
+            headerRight: () => (
+                <View>
+                    <TouchableOpacity onPress={() => setShowOptions(!showOptions)} style={{ marginRight: 10 }}>
+                        <Ionicons name={showOptions ? "close" : "menu"} size={24} color="black" />
+                    </TouchableOpacity>
+                    {showOptions && (
+                        <View style={styles.optionsContainer}>
+                            <TouchableOpacity style={styles.optionButton} onPress={() => setSelectedPage('Membres')}>
+                                <Text style={styles.optionButtonText}>Voir Membres</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.optionButton} onPress={leaveGroup}>
+                                <Text style={styles.optionButtonText}>Quitter le groupe</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )}
+                </View>
+            ),
+        });
+    }, [showOptions]);
 
     useEffect(() => {
         if (selectedPage === 'Membres') {
@@ -149,38 +168,14 @@ export default function MyGroup({ route, navigation }) {
             <View style={styles.buttonContainer}>
                 <Button title="Dépenses" onPress={() => setSelectedPage('Dépenses')} />
                 <Button title="Remboursement" onPress={() => setSelectedPage('Remboursement')} />
-                <Button title="Membres" onPress={() => setSelectedPage('Membres')} />
             </View>
             <View style={styles.content}>
                 {renderContent()}
             </View>
-            <TouchableOpacity style={styles.floatingButton} onPress={() => setShowChoiceModal(true)}>
+            <TouchableOpacity style={styles.floatingButton} onPress={() => setShowAddMemberModal(true)}>
                 <Ionicons name="add" size={24} color="white" />
             </TouchableOpacity>
 
-            {/* Choice Modal */}
-            <Modal
-                visible={showChoiceModal}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={() => setShowChoiceModal(false)}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <TouchableOpacity style={styles.modalButton} onPress={() => { setShowChoiceModal(false); setShowAddMemberModal(true); }}>
-                            <Text style={styles.modalButtonText}>Ajouter un utilisateur</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.modalButton} onPress={leaveGroup}>
-                            <Text style={styles.modalButtonText}>Quitter le groupe</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.closeButton} onPress={() => setShowChoiceModal(false)}>
-                            <Text style={styles.closeButtonText}>Fermer</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-
-            {/* Add Member Modal */}
             <Modal
                 visible={showAddMemberModal}
                 transparent={true}
@@ -241,7 +236,8 @@ const styles = StyleSheet.create({
     },
     memberCard: {
         width: '95%',
-        padding: 20,
+        paddingHorizontal: '20%',
+        paddingVertical: '5%',
         borderRadius: 10,
         backgroundColor: 'white',
         shadowColor: '#000',
@@ -255,6 +251,26 @@ const styles = StyleSheet.create({
     memberName: {
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    optionsContainer: {
+        position: 'absolute',
+        top: 40, // Adjust this value based on your header height
+        right: 10,
+        backgroundColor: 'white',
+        borderRadius: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+        zIndex: 10,
+    },
+    optionButton: {
+        padding: 10,
+    },
+    optionButtonText: {
+        fontSize: 16,
+        color: 'black',
     },
     floatingButton: {
         position: 'absolute',
@@ -313,18 +329,6 @@ const styles = StyleSheet.create({
     },
     closeButtonText: {
         color: '#007bff',
-        fontSize: 16,
-    },
-    modalButton: {
-        width: '100%',
-        padding: 10,
-        marginVertical: 5,
-        backgroundColor: '#007bff',
-        borderRadius: 5,
-        alignItems: 'center',
-    },
-    modalButtonText: {
-        color: 'white',
         fontSize: 16,
     },
     errorText: {

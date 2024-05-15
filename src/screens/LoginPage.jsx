@@ -57,13 +57,18 @@ export default function LoginPage({navigation}) {
 
 
 
-const handleGoogleLogin = async () => {
-        try {
-            // Google login logic
-        } catch (error) {
-            setErrorMessage("Une erreur s'est produite lors de la connexion via Google");
-            console.error(error);
-        }
+    const handleGoogleLogin = () => {
+        instance.get('users/login/google')
+            .then(response => {
+                const token = response.data.token;
+                AsyncStorage.setItem("token", token);
+                setSuccessMessage("Connexion réussie !");
+                navigation.navigate(MainDrawer)
+            })
+            .catch(error => {
+                setErrorMessage("Email ou mot de passe incorrect");
+                console.error(error);
+            });
     };
 
     const handleFacebookLogin = async () => {

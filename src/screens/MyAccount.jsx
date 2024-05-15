@@ -18,6 +18,7 @@ export default function MyAccount({ navigation }) {
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [loading, setLoading] = useState(false);
+    const [ibanVisible, setIbanVisible] = useState(false);
 
     const initializeUserData = async () => {
         const { isLoggedIn, userData } = await checkLoggedIn();
@@ -122,6 +123,10 @@ export default function MyAccount({ navigation }) {
         navigation.navigate('MyGroup', { groupId });
     };
 
+    const toggleIbanVisibility = () => {
+        setIbanVisible(!ibanVisible);
+    };
+
     return (
         <View style={styles.container}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -135,7 +140,12 @@ export default function MyAccount({ navigation }) {
                 {userData && userData.iban ? (
                     <View style={styles.cardContainer}>
                         <View style={styles.card}>
-                            <Text style={styles.ibanText}>IBAN: {userData.iban}</Text>
+                            <Text style={styles.ibanText}>
+                                IBAN: {ibanVisible ? userData.iban : '**** **** **** ****'}
+                            </Text>
+                            <TouchableOpacity onPress={toggleIbanVisibility}>
+                                <Ionicons name={ibanVisible ? "eye-off" : "eye"} size={24} color="black" />
+                            </TouchableOpacity>
                         </View>
                         <TouchableOpacity style={styles.editButton} onPress={toggleIbanModal}>
                             <Text style={styles.editButtonText}>Modifier</Text>
@@ -297,6 +307,7 @@ const styles = StyleSheet.create({
         elevation: 5,
         flexDirection: 'row', // Ajout de flexDirection pour aligner les enfants horizontalement
         justifyContent: 'space-between', // Ajout de justifyContent pour espacer les éléments
+        alignItems: 'center', // Ajout pour centrer verticalement les éléments
     },
     ibanText: {
         fontSize: 18,

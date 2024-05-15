@@ -21,22 +21,20 @@ export const checkLoggedIn = async () => {
                                 console.log("UserData Stored:", storedData);
                             })
                             .catch(error => {
-                                console.error("Erreur lors de la récupération des données utilisateur depuis AsyncStorage :", error);
                             });
                     })
                     .catch(error => {
-                        console.error("Erreur lors de la sauvegarde des données utilisateur dans AsyncStorage :", error);
+                        console.log(error);
                     });
                 return { isLoggedIn: true, userData: response.data };
             } catch (error) {
-                console.error("Erreur lors de la récupération des informations utilisateur :", error);
+                console.log("a été deconnecté");
                 return { isLoggedIn: false, userData: null };
             }
         } else {
             return { isLoggedIn: false, userData: null };
         }
     } catch (error) {
-        console.error("Erreur lors de la récupération du token depuis AsyncStorage :", error);
         return { isLoggedIn: false, userData: null };
     }
 };
