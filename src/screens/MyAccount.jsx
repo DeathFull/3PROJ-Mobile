@@ -20,6 +20,7 @@ export default function MyAccount({ navigation }) {
     const [loading, setLoading] = useState(false);
     const [ibanVisible, setIbanVisible] = useState(false);
 
+    //on reset la data de la page a chaque fois qu'on la lance pour changer l'affichage de data si on change de d'utilisateur , on actualise
     const initializeUserData = async () => {
         const { isLoggedIn, userData } = await checkLoggedIn();
         if (isLoggedIn) {
@@ -37,7 +38,7 @@ export default function MyAccount({ navigation }) {
             initializeUserData();
         }, [])
     );
-
+    // on affiche les groupes de l'utilisateur en question
     const fetchGroups = async () => {
         try {
             const token = await AsyncStorage.getItem('token');
@@ -65,7 +66,7 @@ export default function MyAccount({ navigation }) {
     const toggleOptionsModal = () => {
         setShowOptionsModal(!showOptionsModal);
     };
-
+    // update l'iban de l'utilisateur dans la bdd
     const updateIban = async () => {
         if (iban.length < 14) {
             setErrorMessage("L'IBAN doit comporter au moins 14 caractères.");
@@ -81,6 +82,7 @@ export default function MyAccount({ navigation }) {
                 const response = await instance.put(`/users/${userData._id}`, { iban });
                 const updatedUserData = { ...userData, iban };
                 setUserData(updatedUserData);
+                //on met à jour le localstorage avec le nouvel iban
                 await AsyncStorage.setItem("userData", JSON.stringify(updatedUserData));
                 setSuccessMessage("IBAN mis à jour avec succès !");
             } catch (error) {
@@ -93,7 +95,7 @@ export default function MyAccount({ navigation }) {
             setErrorMessage("Utilisateur non identifié");
         }
     };
-
+    // creation de groupes
     const createGroup = async () => {
         if (!groupName || !groupDescription) {
             setErrorMessage("Tous les champs sont obligatoires.");
@@ -103,7 +105,7 @@ export default function MyAccount({ navigation }) {
         const userId = userData._id;
         const token = await AsyncStorage.getItem('token');
         const members = [userId];
-
+        // on post l'id de l'utilisateur logged in dans le nouveau groupe crée
         try {
             const response = await instance.post("/groups",
                 { name: groupName, members, description: groupDescription, userId },

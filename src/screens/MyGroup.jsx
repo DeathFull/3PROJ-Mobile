@@ -145,6 +145,8 @@ export default function MyGroup({ route, navigation }) {
                 return <Text style={styles.pageText}>Page Dépenses</Text>;
             case 'Remboursement':
                 return <Text style={styles.pageText}>Page Remboursement</Text>;
+            case 'Solde':
+                return <Text style={styles.pageText}>Page Solde</Text>;
             case 'Membres':
                 return loading ? (
                     <ActivityIndicator size="large" color="#0000ff" />
@@ -168,6 +170,7 @@ export default function MyGroup({ route, navigation }) {
             <View style={styles.buttonContainer}>
                 <Button title="Dépenses" onPress={() => setSelectedPage('Dépenses')} />
                 <Button title="Remboursement" onPress={() => setSelectedPage('Remboursement')} />
+                <Button title="Solde" onPress={() => setSelectedPage('Solde')} />
             </View>
             <View style={styles.content}>
                 {renderContent()}
@@ -254,7 +257,7 @@ const styles = StyleSheet.create({
     },
     optionsContainer: {
         position: 'absolute',
-        top: 40, // Adjust this value based on your header height
+        top: 40,
         right: 10,
         backgroundColor: 'white',
         borderRadius: 5,

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View} from 'react-native';
 import Hamburger from 'react-native-animated-hamburger';
-
+//font du header
 const Header = ({ menuVisible, toggleMenu }) => {
     return (
         <View style={{ marginRight: 10 }}>

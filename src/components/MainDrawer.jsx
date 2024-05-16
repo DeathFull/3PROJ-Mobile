@@ -4,7 +4,7 @@ import SettingsScreen from '../screens/SettingsScreen';
 import MyAccount from "../screens/MyAccount";
 
 const Drawer = createDrawerNavigator();
-
+// main drawer permettant de faire la navigation avec le burger dans le header
 export default function MainDrawer() {
     return (
         <Drawer.Navigator initialRouteName="MyAccount"

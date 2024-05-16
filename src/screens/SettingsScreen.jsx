@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { checkLoggedIn } from '../components/checkLoggedIn';
 
 export default function SettingsScreen({ navigation }) {
-
+    //check login si non, on repart sur welcomesscreen
     useEffect(() => {
         const checkLoginStatus = async () => {
             const { isLoggedIn } = await checkLoggedIn();
@@ -15,7 +15,7 @@ export default function SettingsScreen({ navigation }) {
 
         checkLoginStatus();
     }, []);
-
+    //efface les données du localstorage et retour vers welcome screen
     const handleLogout = async () => {
         try {
             await AsyncStorage.removeItem('token');

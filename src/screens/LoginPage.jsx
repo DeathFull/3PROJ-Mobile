@@ -1,4 +1,4 @@
-import React, {  useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image } from 'react-native';
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import instance from '../api/ApiConfig';
@@ -6,7 +6,8 @@ import MainDrawer from "../components/MainDrawer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
-export default function LoginPage({navigation}) {
+
+export default function LoginPage({ navigation }) {
     const [selectedButton, setSelectedButton] = useState('login');
     const [firstname, setFirstname] = useState('');
     const [lastname, setLastname] = useState('');
@@ -18,21 +19,21 @@ export default function LoginPage({navigation}) {
     const handleButtonPress = (buttonType) => {
         setSelectedButton(buttonType);
     };
-
+    // check les données de l'utilisateur et rends un token si c'est bon, le token est stockée en asyncstorage pour être utilisé plus tard
     const handleLogin = () => {
         instance.post('users/login', { email, password })
             .then(response => {
                 const token = response.data.token;
                 AsyncStorage.setItem("token", token);
                 setSuccessMessage("Connexion réussie !");
-                navigation.navigate(MainDrawer)
+                navigation.navigate(MainDrawer);
             })
             .catch(error => {
                 setErrorMessage("Email ou mot de passe incorrect");
                 console.error(error);
             });
     };
-
+    // Ajoute un utilisateur à la bdd et récupere un token, le token est stockée en asyncstorage pour être utilisé plus tard
     const handleRegister = () => {
         if (!firstname || !lastname || !email || !password) {
             setErrorMessage("Veuillez remplir tous les champs");
@@ -47,26 +48,10 @@ export default function LoginPage({navigation}) {
                 setSuccessMessage("Enregistrement réussi !");
                 const token = response.data.token;
                 AsyncStorage.setItem("token", token);
-                navigation.navigate(MainDrawer)
+                navigation.navigate(MainDrawer);
             })
             .catch(error => {
                 setErrorMessage("Cette adresse email existe déjà");
-                console.error(error);
-            });
-    };
-
-
-
-    const handleGoogleLogin = () => {
-        instance.get('users/login/google')
-            .then(response => {
-                const token = response.data.token;
-                AsyncStorage.setItem("token", token);
-                setSuccessMessage("Connexion réussie !");
-                navigation.navigate(MainDrawer)
-            })
-            .catch(error => {
-                setErrorMessage("Email ou mot de passe incorrect");
                 console.error(error);
             });
     };
@@ -164,8 +149,8 @@ export default function LoginPage({navigation}) {
             )}
             <View style={styles.externalLoginContainer}>
                 <TouchableOpacity
-                    style={[styles.externalLoginButton, { justifyContent: 'center' }]}
-                    onPress={handleGoogleLogin}
+                    style={styles.externalLoginButton}
+                    onPress={() => promptAsync()}
                 >
                     <Text style={styles.externalLoginButtonText}>Se connecter via Google</Text>
                     <AntDesign name="google" size={24} color="white" />
@@ -222,7 +207,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#D27E00',
     },
     formContainer: {
-        width: '80%', // Ajuste la largeur du formulaire
+        width: '80%',
         marginTop: 20,
         paddingHorizontal: 20,
     },
@@ -250,7 +235,7 @@ const styles = StyleSheet.create({
         marginTop: 20,
     },
     externalLoginButton: {
-        backgroundColor: '#3b5998',
+        backgroundColor: '#5900D6',
         padding: 12,
         borderRadius: 8,
         marginTop: 10,

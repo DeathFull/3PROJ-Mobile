@@ -17,6 +17,7 @@ export default function App() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        //on check si on est login pour définir sur quelle page on va atterrir
         const fetchLoginStatus = async () => {
             const result = await checkLoggedIn();
             setIsLoggedIn(result.isLoggedIn);
@@ -35,7 +36,7 @@ export default function App() {
             </View>
         );
     }
-
+// dans le return, on a deux systèmes dee navigation en fonction de si on est login ou non, si on est login on va vers maindrawer sinon vers welcomescreen
     return (
         <NavigationContainer>
             <Stack.Navigator>

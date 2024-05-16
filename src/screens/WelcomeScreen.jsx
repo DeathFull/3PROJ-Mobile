@@ -4,18 +4,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 export default function WelcomeScreen({ navigation }) {
-    AsyncStorage.getItem("token")
-        .then(storedToken => {
-            console.log("Welcome Screen:", storedToken);
-        })
-        .catch(error => {
-            console.error("Erreur lors de la récupération du token depuis AsyncStorage dans handleLogin :", error);
-        });
-
     const goToLoginPage = () => {
         navigation.navigate('LoginPage');
     };
-
+    //bouton pour aller vers loginpage
     return (
         <View style={styles.container}>
             <Text style={styles.title}>UniFinance</Text>
