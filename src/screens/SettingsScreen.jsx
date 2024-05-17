@@ -18,8 +18,7 @@ export default function SettingsScreen({ navigation }) {
 
     const handleLogout = async () => {
         try {
-            await AsyncStorage.removeItem('token');
-            await AsyncStorage.removeItem('userData');
+            await clearAsyncStorage();
             navigation.navigate('WelcomeScreen');
         } catch (error) {
             console.error('Error logging out:', error);
@@ -42,11 +41,18 @@ export default function SettingsScreen({ navigation }) {
                 },
             });
 
-            await AsyncStorage.removeItem('token');
-            await AsyncStorage.removeItem('userData');
+            await clearAsyncStorage();
             navigation.navigate('WelcomeScreen');
         } catch (error) {
             console.error('Error deleting account:', error);
+        }
+    };
+
+    const clearAsyncStorage = async () => {
+        try {
+            await AsyncStorage.clear();
+        } catch (error) {
+            console.error('Error clearing AsyncStorage:', error);
         }
     };
 

@@ -10,7 +10,7 @@ export default function MyGroup({ route, navigation }) {
     const [groupData, setGroupData] = useState(null);
     const [members, setMembers] = useState([]);
     const [expenses, setExpenses] = useState([]);
-    const [balances, setBalances] = useState([]); // Add balances state
+    const [balances, setBalances] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
@@ -58,8 +58,8 @@ export default function MyGroup({ route, navigation }) {
             fetchMembers();
         } else if (selectedPage === 'Dépenses') {
             fetchExpenses();
-        } else if (selectedPage === 'Solde') { // Add this line
-            fetchBalances(); // Add this line
+        } else if (selectedPage === 'Solde') {
+            fetchBalances();
         }
     }, [selectedPage]);
 
@@ -111,20 +111,8 @@ export default function MyGroup({ route, navigation }) {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            const expensesWithUserDetails = await Promise.all(
-                response.data.map(async expense => {
-                    const userResponse = await instance.get(`/users/`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    });
-                    return {
-                        ...expense,
-                        user: userResponse.data,
-                    };
-                })
-            );
-            setExpenses(expensesWithUserDetails.sort((a, b) => new Date(b.date) - new Date(a.date)));
+            const sortedExpenses = response.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+            setExpenses(sortedExpenses);
         } catch (error) {
             console.error("Erreur lors de la récupération des dépenses :", error);
         } finally {
@@ -132,7 +120,7 @@ export default function MyGroup({ route, navigation }) {
         }
     };
 
-    const fetchBalances = async () => { // Add this function
+    const fetchBalances = async () => {
         setLoading(true);
         try {
             const token = await AsyncStorage.getItem('token');
@@ -233,12 +221,12 @@ export default function MyGroup({ route, navigation }) {
                 await instance.post(`/expenses/`, {
                     idGroup: groupId,
                     idUser: userId,
-                    name,
-                    description,
-                    amount,
-                    date: new Date(),
-                    justification,
-                    category
+                    name: name,
+                    description: description,
+                    amount: Number(amount),
+                    date: new Date().toString(),
+                    justification: justification,
+                    category: category,
                 }, {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -274,7 +262,7 @@ export default function MyGroup({ route, navigation }) {
                         <TouchableOpacity style={styles.addExpenseButton} onPress={() => setShowAddExpenseModal(true)}>
                             <Text style={styles.addExpenseButtonText}>Ajouter une dépense</Text>
                         </TouchableOpacity>
-                        {expenses.map(expense => (
+                        {expenses.map(expense => expense.idUser !== null && (
                             <View key={expense._id} style={styles.expenseCard}>
                                 <View style={styles.expenseDetails}>
                                     <Text style={styles.expenseName}>{expense.name}</Text>
@@ -283,14 +271,14 @@ export default function MyGroup({ route, navigation }) {
                                     <Text style={styles.expenseCategory}>{expense.category}</Text>
                                     <Text style={styles.expenseDate}>{new Date(expense.date).toLocaleDateString()}</Text>
                                 </View>
-                                <Text style={styles.expenseUser}>{expense.user.firstname} {expense.user.lastname.charAt(0)}.</Text>
+                                <Text style={styles.expenseUser}>{expense.idUser.firstname} {expense.idUser.lastname.charAt(0)}.</Text>
                             </View>
                         ))}
                     </ScrollView>
                 );
             case 'Remboursement':
                 return <Text style={styles.pageText}>Page Remboursement</Text>;
-            case 'Solde': // Add this case
+            case 'Solde':
                 return loading ? (
                     <ActivityIndicator size="large" color="#0000ff" />
                 ) : (
