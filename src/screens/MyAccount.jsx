@@ -20,7 +20,6 @@ export default function MyAccount({ navigation }) {
     const [loading, setLoading] = useState(false);
     const [ibanVisible, setIbanVisible] = useState(false);
 
-    //on reset la data de la page a chaque fois qu'on la lance pour changer l'affichage de data si on change de d'utilisateur , on actualise
     const initializeUserData = async () => {
         const { isLoggedIn, userData } = await checkLoggedIn();
         if (isLoggedIn) {
@@ -38,7 +37,7 @@ export default function MyAccount({ navigation }) {
             initializeUserData();
         }, [])
     );
-    // on affiche les groupes de l'utilisateur en question
+
     const fetchGroups = async () => {
         try {
             const token = await AsyncStorage.getItem('token');
@@ -47,10 +46,10 @@ export default function MyAccount({ navigation }) {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            console.log("reponses des groupes", response.data);
+            console.log("Group response:", response.data);
             setGroups(response.data);
         } catch (error) {
-            console.error("Erreur lors de la récupération des groupes :", error);
+            console.error("Error fetching groups:", error);
         }
     };
 
@@ -66,7 +65,7 @@ export default function MyAccount({ navigation }) {
     const toggleOptionsModal = () => {
         setShowOptionsModal(!showOptionsModal);
     };
-    // update l'iban de l'utilisateur dans la bdd
+
     const updateIban = async () => {
         if (iban.length < 14) {
             setErrorMessage("L'IBAN doit comporter au moins 14 caractères.");
@@ -82,12 +81,11 @@ export default function MyAccount({ navigation }) {
                 const response = await instance.put(`/users/${userData._id}`, { iban });
                 const updatedUserData = { ...userData, iban };
                 setUserData(updatedUserData);
-                //on met à jour le localstorage avec le nouvel iban
                 await AsyncStorage.setItem("userData", JSON.stringify(updatedUserData));
                 setSuccessMessage("IBAN mis à jour avec succès !");
             } catch (error) {
                 setErrorMessage("Erreur lors de la mise à jour de l'IBAN");
-                console.error("Erreur lors de la mise à jour de l'IBAN :", error);
+                console.error("Error updating IBAN:", error);
             } finally {
                 setLoading(false);
             }
@@ -95,7 +93,7 @@ export default function MyAccount({ navigation }) {
             setErrorMessage("Utilisateur non identifié");
         }
     };
-    // creation de groupes
+
     const createGroup = async () => {
         if (!groupName || !groupDescription) {
             setErrorMessage("Tous les champs sont obligatoires.");
@@ -105,19 +103,18 @@ export default function MyAccount({ navigation }) {
         const userId = userData._id;
         const token = await AsyncStorage.getItem('token');
         const members = [userId];
-        // on post l'id de l'utilisateur logged in dans le nouveau groupe crée
         try {
             const response = await instance.post("/groups",
                 { name: groupName, members, description: groupDescription, userId },
                 { headers: { Authorization: `Bearer ${token}` } });
 
-            console.log("Groupe créé", response.data);
+            console.log("Group created:", response.data);
             setSuccessMessage("Groupe créé avec succès !");
             fetchGroups();
             toggleGroupModal();
         } catch (error) {
             setErrorMessage("Erreur lors de la création du groupe");
-            console.error("Erreur:", error);
+            console.error("Error creating group:", error);
         }
     };
 
@@ -206,18 +203,18 @@ export default function MyAccount({ navigation }) {
                             <ActivityIndicator size="large" color="#0000ff" />
                         ) : (
                             <>
-                                <TouchableOpacity style={styles.submitButton} onPress={() => {
+                                <TouchableOpacity style={styles.orangeButton} onPress={() => {
                                     updateIban();
                                     toggleIbanModal();
                                 }}>
-                                    <Text style={styles.submitButtonText}>Soumettre</Text>
+                                    <Text style={styles.orangeButtonText}>Soumettre</Text>
                                 </TouchableOpacity>
                                 {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
                                 {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
                             </>
                         )}
-                        <TouchableOpacity style={styles.closeButton} onPress={toggleIbanModal}>
-                            <Text style={styles.closeButtonText}>Fermer</Text>
+                        <TouchableOpacity style={[styles.closeButton, styles.orangeButton]} onPress={toggleIbanModal}>
+                            <Text style={styles.orangeButtonText}>Fermer</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -231,11 +228,11 @@ export default function MyAccount({ navigation }) {
             >
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
-                        <TouchableOpacity style={styles.menuItem} onPress={() => { toggleOptionsModal(); toggleGroupModal(); }}>
-                            <Text style={styles.menuItemText}>Créer un groupe</Text>
+                        <TouchableOpacity style={[styles.menuItem, styles.orangeButton]} onPress={() => { toggleOptionsModal(); toggleGroupModal(); }}>
+                            <Text style={styles.orangeButtonText}>Créer un groupe</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.menuItem} onPress={toggleOptionsModal}>
-                            <Text style={styles.menuItemText}>Fermer</Text>
+                        <TouchableOpacity style={[styles.menuItem, styles.orangeButton]} onPress={toggleOptionsModal}>
+                            <Text style={styles.orangeButtonText}>Fermer</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -266,15 +263,15 @@ export default function MyAccount({ navigation }) {
                             <ActivityIndicator size="large" color="#0000ff" />
                         ) : (
                             <>
-                                <TouchableOpacity style={styles.submitButton} onPress={createGroup}>
-                                    <Text style={styles.submitButtonText}>Soumettre</Text>
+                                <TouchableOpacity style={styles.orangeButton} onPress={createGroup}>
+                                    <Text style={styles.orangeButtonText}>Soumettre</Text>
                                 </TouchableOpacity>
                                 {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
                                 {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
                             </>
                         )}
-                        <TouchableOpacity style={styles.closeButton} onPress={toggleGroupModal}>
-                            <Text style={styles.closeButtonText}>Fermer</Text>
+                        <TouchableOpacity style={[styles.closeButton, styles.orangeButton]} onPress={toggleGroupModal}>
+                            <Text style={styles.orangeButtonText}>Fermer</Text>
                         </TouchableOpacity>
                     </View>
                 </View>
@@ -307,9 +304,9 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
         elevation: 5,
-        flexDirection: 'row', // Ajout de flexDirection pour aligner les enfants horizontalement
-        justifyContent: 'space-between', // Ajout de justifyContent pour espacer les éléments
-        alignItems: 'center', // Ajout pour centrer verticalement les éléments
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     ibanText: {
         fontSize: 18,
@@ -432,7 +429,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     submitButton: {
-        backgroundColor: '#28a745',
+        backgroundColor: '#D27E00',
         padding: 10,
         borderRadius: 5,
         width: '100%',
@@ -469,5 +466,17 @@ const styles = StyleSheet.create({
     successText: {
         color: 'green',
         marginBottom: 10,
+    },
+    orangeButton: {
+        backgroundColor: '#D27E00',
+        padding: 10,
+        borderRadius: 5,
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    orangeButtonText: {
+        color: 'white',
+        fontSize: 16,
     },
 });

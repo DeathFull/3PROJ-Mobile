@@ -4,7 +4,7 @@ import instance from '../api/ApiConfig';
 export const checkLoggedIn = async () => {
     try {
         const storedToken = await AsyncStorage.getItem("token");
-        console.log("Test du token Checkloggedin :", storedToken);
+        console.log("le token dans checkloggin", storedToken);
         if (storedToken) {
             try {
                 //avec le token , on check si on peut avoir notre utilisateur
@@ -15,10 +15,8 @@ export const checkLoggedIn = async () => {
                 });
                 const userData = response.data;
                 console.log("User data: ", userData);
-                //on stock l'utilisateur si on l'a récupéré , on stock les données
                 AsyncStorage.setItem("userData", JSON.stringify(userData))
                     .then(() => {
-                        //la je print juste pour vérifier la data stockée
                         AsyncStorage.getItem("userData")
                             .then(storedData => {
                                 console.log("UserData Stored:", storedData);

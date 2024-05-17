@@ -7,7 +7,6 @@ export default function WelcomeScreen({ navigation }) {
     const goToLoginPage = () => {
         navigation.navigate('LoginPage');
     };
-    //bouton pour aller vers loginpage
     return (
         <View style={styles.container}>
             <Text style={styles.title}>UniFinance</Text>

@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, TextInput, Image } from 'react-native';
 import { MaterialIcons, AntDesign } from '@expo/vector-icons';
 import instance from '../api/ApiConfig';
-import MainDrawer from "../components/MainDrawer";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-
+import * as WebBrowser from 'expo-web-browser';
 
 export default function LoginPage({ navigation }) {
     const [selectedButton, setSelectedButton] = useState('login');
@@ -18,22 +16,24 @@ export default function LoginPage({ navigation }) {
 
     const handleButtonPress = (buttonType) => {
         setSelectedButton(buttonType);
+        setErrorMessage('');
+        setSuccessMessage('');
     };
-    // check les données de l'utilisateur et rends un token si c'est bon, le token est stockée en asyncstorage pour être utilisé plus tard
+
     const handleLogin = () => {
         instance.post('users/login', { email, password })
-            .then(response => {
+            .then(async response => {
                 const token = response.data.token;
-                AsyncStorage.setItem("token", token);
+                await AsyncStorage.setItem("token", token);
                 setSuccessMessage("Connexion réussie !");
-                navigation.navigate(MainDrawer);
+                navigation.navigate('MainDrawer');
             })
             .catch(error => {
                 setErrorMessage("Email ou mot de passe incorrect");
                 console.error(error);
             });
     };
-    // Ajoute un utilisateur à la bdd et récupere un token, le token est stockée en asyncstorage pour être utilisé plus tard
+
     const handleRegister = () => {
         if (!firstname || !lastname || !email || !password) {
             setErrorMessage("Veuillez remplir tous les champs");
@@ -44,11 +44,12 @@ export default function LoginPage({ navigation }) {
             return;
         }
         instance.post('users/register', { firstname, lastname, email, password })
-            .then(response => {
-                setSuccessMessage("Enregistrement réussi !");
+            .then(async response => {
                 const token = response.data.token;
-                AsyncStorage.setItem("token", token);
-                navigation.navigate(MainDrawer);
+                console.log("le token dans register",token);
+                setSuccessMessage("Inscription réussie ! Connexion en cours...");
+                await AsyncStorage.setItem("token", token);
+                handleButtonPress('login')
             })
             .catch(error => {
                 setErrorMessage("Cette adresse email existe déjà");
@@ -56,9 +57,24 @@ export default function LoginPage({ navigation }) {
             });
     };
 
+    const handleGoogleLogin = async () => {
+        try {
+            const result = await WebBrowser.openBrowserAsync('https://api.uni-finance.fr/users/login/google?redirectUrl=unifinance://login');
+            if (result.type === 'success') {
+                const token = result.data.token; // Ensure token is retrieved correctly
+                await AsyncStorage.setItem("token", token);
+                setSuccessMessage("Connexion réussie !");
+                navigation.navigate('MainDrawer'); // Ensure this matches your navigator setup
+            }
+        } catch (error) {
+            setErrorMessage("Une erreur s'est produite lors de la connexion via Google");
+            console.error(error);
+        }
+    };
+
     const handleFacebookLogin = async () => {
         try {
-            // Facebook login logic
+            // Logique de connexion via Facebook
         } catch (error) {
             setErrorMessage("Une erreur s'est produite lors de la connexion via Facebook");
             console.error(error);
@@ -150,13 +166,13 @@ export default function LoginPage({ navigation }) {
             <View style={styles.externalLoginContainer}>
                 <TouchableOpacity
                     style={styles.externalLoginButton}
-                    onPress={() => promptAsync()}
+                    onPress={handleGoogleLogin}
                 >
                     <Text style={styles.externalLoginButtonText}>Se connecter via Google</Text>
                     <AntDesign name="google" size={24} color="white" />
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.externalLoginButton, { justifyContent: 'center' }]}
+                    style={styles.externalLoginButton}
                     onPress={handleFacebookLogin}
                 >
                     <Text style={styles.externalLoginButtonText}>Se connecter via Facebook</Text>

@@ -1,7 +1,8 @@
 {
   "expo": {
-    "name": "view-example",
+    "name": "3PROJ-Mobile",
     "slug": "snack-975cff5a-c1be-4e22-95cf-dda8e0b826dc",
+    "scheme": "unifinance",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -22,8 +23,7 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "package": "host.exp.exponent"
+      }
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -31,11 +31,6 @@
     "description": "Example usage",
     "plugins": [
       "expo-font"
-    ],
-    "extra": {
-      "eas": {
-        "projectId": "abe6db24-81a0-44f3-8cf1-07356bf61dd8"
-      }
-    }
+    ]
   }
 }
