@@ -46,7 +46,7 @@ export default function MyAccount({ navigation }) {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            console.log("Group response:", response.data);
+            // console.log("Group response:", response.data);
             setGroups(response.data);
         } catch (error) {
             console.error("Error fetching groups:", error);
@@ -67,8 +67,10 @@ export default function MyAccount({ navigation }) {
     };
 
     const updateIban = async () => {
+        console.log("l'iban",iban)
         if (iban.length < 14) {
             setErrorMessage("L'IBAN doit comporter au moins 14 caractères.");
+            console.log("errorMessage", errorMessage)
             return;
         } else if (iban.length > 34) {
             setErrorMessage("L'IBAN ne peut pas comporter plus de 34 caractères.");
@@ -78,7 +80,12 @@ export default function MyAccount({ navigation }) {
         if (userData && userData._id) {
             setLoading(true);
             try {
-                const response = await instance.put(`/users/${userData._id}`, { iban });
+                const token = await AsyncStorage.getItem('token');
+                const response = await instance.put(`/users`, { iban }, {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                });
                 const updatedUserData = { ...userData, iban };
                 setUserData(updatedUserData);
                 await AsyncStorage.setItem("userData", JSON.stringify(updatedUserData));
@@ -204,8 +211,9 @@ export default function MyAccount({ navigation }) {
                         ) : (
                             <>
                                 <TouchableOpacity style={styles.orangeButton} onPress={() => {
-                                    updateIban();
+                                    updateIban().then();
                                     toggleIbanModal();
+                                    console.log("errorMessage", errorMessage)
                                 }}>
                                     <Text style={styles.orangeButtonText}>Soumettre</Text>
                                 </TouchableOpacity>
