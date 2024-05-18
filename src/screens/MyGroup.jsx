@@ -23,6 +23,8 @@ export default function MyGroup({ route, navigation }) {
     const [justification, setJustification] = useState('');
     const [errorMessage, setErrorMessage] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
+    const [showBalanceModal, setShowBalanceModal] = useState(false);
+    const [selectedUserIban, setSelectedUserIban] = useState('');
 
     useEffect(() => {
         fetchGroupData();
@@ -129,20 +131,7 @@ export default function MyGroup({ route, navigation }) {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            const balancesWithUserDetails = await Promise.all(
-                response.data.map(async balance => {
-                    const userResponse = await instance.get(`/users/`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    });
-                    return {
-                        ...balance,
-                        user: userResponse.data,
-                    };
-                })
-            );
-            setBalances(balancesWithUserDetails);
+            setBalances(response.data);
         } catch (error) {
             console.error("Erreur lors de la récupération des soldes :", error);
         } finally {
@@ -189,7 +178,6 @@ export default function MyGroup({ route, navigation }) {
             if (storedUserData) {
                 const userData = JSON.parse(storedUserData);
                 const userId = userData._id;
-                console.log(userData._id);
                 await instance.put(`/groups/${groupId}/removeUser`,
                     { idUser: userId },
                     { headers: { Authorization: `Bearer ${token}` } }
@@ -209,15 +197,12 @@ export default function MyGroup({ route, navigation }) {
         setLoading(true);
         setErrorMessage('');
         setSuccessMessage('');
-        console.log("addExpense function called");
         try {
             const token = await AsyncStorage.getItem('token');
             const storedUserData = await AsyncStorage.getItem('userData');
             if (storedUserData) {
                 const userData = JSON.parse(storedUserData);
                 const userId = userData._id;
-                console.log("User ID: ", userId);
-                console.log("Group ID: ", groupId);
                 await instance.post(`/expenses/`, {
                     idGroup: groupId,
                     idUser: userId,
@@ -251,7 +236,10 @@ export default function MyGroup({ route, navigation }) {
             setShowAddExpenseModal(false);
         }
     };
-
+    const handleBalancePress = (user) => {
+        setSelectedUserIban(user.iban || 'IBAN non spécifié');
+        setShowBalanceModal(true);
+    };
     const renderContent = () => {
         switch (selectedPage) {
             case 'Dépenses':
@@ -283,13 +271,17 @@ export default function MyGroup({ route, navigation }) {
                     <ActivityIndicator size="large" color="#0000ff" />
                 ) : (
                     <ScrollView contentContainerStyle={styles.balanceList}>
-                        {balances.map(balance => (
-                            <View key={balance._id} style={styles.balanceCard}>
+                        {balances.map(balance => balance.idUser !== null && (
+                            <TouchableOpacity
+                                key={balance._id}
+                                style={styles.balanceCard}
+                                onPress={() => handleBalancePress(balance.idUser)}
+                            >
                                 <View style={styles.balanceDetails}>
-                                    <Text style={styles.balanceName}>{balance.user.firstname} {balance.user.lastname.charAt(0)}.</Text>
-                                    <Text style={styles.balanceAmount}>{balance.amount} €</Text>
+                                    <Text style={styles.balanceName}>{balance.idUser.firstname} {balance.idUser.lastname.charAt(0)}.</Text>
+                                    <Text style={styles.balanceAmount}>-{balance.balance} €</Text>
                                 </View>
-                            </View>
+                            </TouchableOpacity>
                         ))}
                     </ScrollView>
                 );
@@ -427,6 +419,23 @@ export default function MyGroup({ route, navigation }) {
                                 </TouchableOpacity>
                             </>
                         )}
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal
+                visible={showBalanceModal}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setShowBalanceModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>IBAN de l'utilisateur</Text>
+                        <Text>{selectedUserIban}</Text>
+                        <TouchableOpacity style={styles.closeButton} onPress={() => setShowBalanceModal(false)}>
+                            <Text style={styles.closeButtonText}>Fermer</Text>
+                        </TouchableOpacity>
                     </View>
                 </View>
             </Modal>
@@ -659,18 +668,20 @@ const styles = StyleSheet.create({
         elevation: 5,
         marginVertical: 10,
         alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
     },
     balanceDetails: {
         flex: 1,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     balanceName: {
-        fontSize: 18,
+        fontSize: 20,
         fontWeight: 'bold',
+        marginRight: 10,
     },
     balanceAmount: {
-        fontSize: 16,
-        color: 'blue',
+        fontSize: 18,
+        color: 'red',
     },
 });
