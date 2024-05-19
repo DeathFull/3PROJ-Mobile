@@ -114,10 +114,8 @@ export default function EditProfileScreen({ navigation }) {
 
     if (!result.canceled) {
       const { uri } = result.assets[0];
-      console.log('Image selected:', uri);
       setAvatar(uri);
-    } else {
-      console.log('Image selection canceled');
+
     }
   };
 

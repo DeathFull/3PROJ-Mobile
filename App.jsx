@@ -26,7 +26,6 @@ export default function App() {
             const result = await checkLoggedIn();
             setIsLoggedIn(result.isLoggedIn);
             setLoading(false);
-            console.log(isLoggedIn);
         };
 
         fetchLoginStatus();

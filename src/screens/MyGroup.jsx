@@ -28,6 +28,7 @@ export default function MyGroup({ route, navigation }) {
     const [expenseData, setExpenseData] = useState([]);
     const [currentEmail, setCurrentEmail] = useState('');
     const [currentPercentage, setCurrentPercentage] = useState('');
+    const [showLeaveGroupModal, setShowLeaveGroupModal] = useState(false);
 
     useEffect(() => {
         fetchGroupData();
@@ -36,7 +37,7 @@ export default function MyGroup({ route, navigation }) {
     useEffect(() => {
         if (groupData) {
             navigation.setOptions({
-                title: groupData.name,
+                title: truncateGroupName(groupData.name),
                 headerRight: () => (
                     <View>
                         <TouchableOpacity onPress={() => setShowOptions(!showOptions)} style={{ marginRight: 10 }}>
@@ -47,7 +48,10 @@ export default function MyGroup({ route, navigation }) {
                                 <TouchableOpacity style={styles.optionButton} onPress={() => setSelectedPage('Membres')}>
                                     <Text style={styles.optionButtonText}>Voir Membres</Text>
                                 </TouchableOpacity>
-                                <TouchableOpacity style={styles.optionButton} onPress={leaveGroup}>
+                                <TouchableOpacity style={styles.optionButton} onPress={() => navigation.navigate('GroupStatsScreen', { groupId })}>
+                                    <Text style={styles.optionButtonText}>Afficher stats</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.optionButton} onPress={handleLeaveGroupPress}>
                                     <Text style={styles.optionButtonText}>Quitter le groupe</Text>
                                 </TouchableOpacity>
                             </View>
@@ -67,6 +71,10 @@ export default function MyGroup({ route, navigation }) {
             fetchBalances();
         }
     }, [selectedPage]);
+
+    const truncateGroupName = (name, maxLength = 20) => {
+        return name.length > maxLength ? `${name.substring(0, maxLength)}...` : name;
+    };
 
     const fetchGroupData = async () => {
         setLoading(true);
@@ -172,7 +180,11 @@ export default function MyGroup({ route, navigation }) {
         }
     };
 
-    const leaveGroup = async () => {
+    const handleLeaveGroupPress = () => {
+        setShowLeaveGroupModal(true);
+    };
+
+    const confirmLeaveGroup = async () => {
         setLoading(true);
         setErrorMessage('');
         try {
@@ -181,10 +193,7 @@ export default function MyGroup({ route, navigation }) {
             if (storedUserData) {
                 const userData = JSON.parse(storedUserData);
                 const userId = userData._id;
-                await instance.put(`/groups/${groupId}/removeUser`,
-                    { idUser: userId },
-                    { headers: { Authorization: `Bearer ${token}` } }
-                );
+                await instance.put(`/groups/${groupId}/removeUser`, { idUser: userId }, { headers: { Authorization: `Bearer ${token}` } });
                 navigation.goBack();
             } else {
                 setErrorMessage('Erreur: Utilisateur non trouvé');
@@ -193,7 +202,43 @@ export default function MyGroup({ route, navigation }) {
             setErrorMessage('Erreur: Utilisateur non trouvé');
         } finally {
             setLoading(false);
+            setShowLeaveGroupModal(false);
         }
+    };
+
+    const checkEmailExists = async (email) => {
+        const token = await AsyncStorage.getItem('token');
+        try {
+            const response = await instance.get(`/users/email/${email}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            return response.data ? response.data : null;
+        } catch (error) {
+            console.error("Erreur lors de la vérification de l'email :", error);
+            return null;
+        }
+    };
+
+    const handleAddExpenseField = async () => {
+        if (currentEmail && currentPercentage) {
+            const user = await checkEmailExists(currentEmail);
+            if (user) {
+                setExpenseData([...expenseData, { email: currentEmail, percentage: currentPercentage }]);
+                setCurrentEmail('');
+                setCurrentPercentage('');
+                setErrorMessage('');
+            } else {
+                setErrorMessage('Aucun utilisateur trouvé avec cet email');
+            }
+        } else {
+            Alert.alert('Erreur', 'Veuillez entrer une adresse e-mail et un pourcentage.');
+        }
+    };
+
+    const handleRemoveExpenseField = (index) => {
+        const newExpenseData = [...expenseData];
+        newExpenseData.splice(index, 1);
+        setExpenseData(newExpenseData);
     };
 
     const addExpense = async () => {
@@ -206,6 +251,8 @@ export default function MyGroup({ route, navigation }) {
             if (storedUserData) {
                 const userData = JSON.parse(storedUserData);
                 const userId = userData._id;
+
+                // Ajouter la dépense
                 await instance.post(`/expenses/`, {
                     idGroup: groupId,
                     idUser: userId,
@@ -221,6 +268,23 @@ export default function MyGroup({ route, navigation }) {
                         Authorization: `Bearer ${token}`,
                     }
                 });
+
+                // Ajouter les dettes
+                for (const expense of expenseData) {
+                    const refunder = await checkEmailExists(expense.email);
+                    if (refunder) {
+                        await instance.put(`/debts/${groupId}`, {
+                            receiverId: userId,
+                            refunderId: refunder._id,
+                            idGroup: groupId,
+                            amount: Number(amount) * (Number(expense.percentage) / 100),
+                        }, {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                            }
+                        });
+                    }
+                }
 
                 setSuccessMessage('Dépense ajoutée avec succès');
                 setName('');
@@ -239,16 +303,6 @@ export default function MyGroup({ route, navigation }) {
         } finally {
             setLoading(false);
             setShowAddExpenseModal(false);
-        }
-    };
-
-    const handleAddExpenseField = () => {
-        if (currentEmail && currentPercentage) {
-            setExpenseData([...expenseData, { email: currentEmail, percentage: currentPercentage }]);
-            setCurrentEmail('');
-            setCurrentPercentage('');
-        } else {
-            Alert.alert('Erreur', 'Veuillez entrer une adresse e-mail et un pourcentage.');
         }
     };
 
@@ -439,6 +493,9 @@ export default function MyGroup({ route, navigation }) {
                         {expenseData.map((expense, index) => (
                             <View key={index} style={styles.expenseItem}>
                                 <Text style={styles.expenseText}>{expense.email} - {expense.percentage}%</Text>
+                                <TouchableOpacity onPress={() => handleRemoveExpenseField(index)}>
+                                    <Ionicons name="close" size={24} color="red" />
+                                </TouchableOpacity>
                             </View>
                         ))}
                         <TextInput
@@ -478,6 +535,27 @@ export default function MyGroup({ route, navigation }) {
                         <TouchableOpacity style={styles.closeButton} onPress={() => setShowBalanceModal(false)}>
                             <Text style={styles.closeButtonText}>Fermer</Text>
                         </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
+            <Modal
+                visible={showLeaveGroupModal}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setShowLeaveGroupModal(false)}
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Êtes-vous sûr de vouloir quitter le groupe ?</Text>
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity style={styles.confirmButton} onPress={confirmLeaveGroup}>
+                                <Text style={styles.confirmButtonText}>Oui</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.cancelButton} onPress={() => setShowLeaveGroupModal(false)}>
+                                <Text style={styles.cancelButtonText}>Non</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -550,9 +628,15 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
         zIndex: 10,
+        width: 200, // Set a fixed width for the container
     },
     optionButton: {
-        padding: 10,
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc', // Add a separator between options
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     optionButtonText: {
         fontSize: 16,
@@ -751,5 +835,32 @@ const styles = StyleSheet.create({
     expenseText: {
         fontSize: 16,
         color: '#7F7F7F',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        width: '100%',
+    },
+    confirmButton: {
+        backgroundColor: '#D27E00',
+        padding: 10,
+        borderRadius: 5,
+        width: '40%',
+        alignItems: 'center',
+    },
+    confirmButtonText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    cancelButton: {
+        backgroundColor: '#ccc',
+        padding: 10,
+        borderRadius: 5,
+        width: '40%',
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        color: 'black',
+        fontSize: 16,
     },
 });
