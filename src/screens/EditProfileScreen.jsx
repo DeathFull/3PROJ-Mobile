@@ -77,22 +77,20 @@ export default function EditProfileScreen({ navigation }) {
         type: mimeType || 'application/octet-stream'
       });
 
-      const response = await instance.post(`/users/updateImage`, formData, {
+      await instance.post(`/users/updateImage`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data',
         },
       });
 
-      // Fetch updated user data from API after updating the avatar
       const updatedUser = await fetchUpdatedUserData();
       setUserData(updatedUser);
       setAvatar(updatedUser.avatar ? `${updatedUser.avatar}?t=${new Date().getTime()}` : null);
       await AsyncStorage.setItem('userData', JSON.stringify(updatedUser));
       navigation.goBack();
     } catch (error) {
-      console.error('Failed to save user data:', error);
-      Alert.alert('Error', 'Failed to save user data');
+      console.log("erreur network venant d'axios,quittez la page et réessayer");
     } finally {
       setLoading(false);
     }

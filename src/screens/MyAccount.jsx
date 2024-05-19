@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Modal, TextInput, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons, FontAwesome } from '@expo/vector-icons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import instance from '../api/ApiConfig';
 import { checkLoggedIn } from '../components/checkLoggedIn';
 import { useFocusEffect } from '@react-navigation/native';
+import AccountModals from '../modals/AccountModals';
+import styles from '../styles/MyAccountStyles';
 
 export default function MyAccount({ navigation }) {
     const [showIbanModal, setShowIbanModal] = useState(false);
@@ -46,7 +48,7 @@ export default function MyAccount({ navigation }) {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            // console.log("Group response:", response.data);
+
             setGroups(response.data);
         } catch (error) {
             console.error("Error fetching groups:", error);
@@ -67,10 +69,8 @@ export default function MyAccount({ navigation }) {
     };
 
     const updateIban = async () => {
-        console.log("l'iban",iban)
         if (iban.length < 14) {
             setErrorMessage("L'IBAN doit comporter au moins 14 caractères.");
-            console.log("errorMessage", errorMessage)
             return;
         } else if (iban.length > 34) {
             setErrorMessage("L'IBAN ne peut pas comporter plus de 34 caractères.");
@@ -81,7 +81,7 @@ export default function MyAccount({ navigation }) {
             setLoading(true);
             try {
                 const token = await AsyncStorage.getItem('token');
-                const response = await instance.put(`/users`, { iban }, {
+                await instance.put(`/users`, { iban }, {
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -111,11 +111,10 @@ export default function MyAccount({ navigation }) {
         const token = await AsyncStorage.getItem('token');
         const members = [userId];
         try {
-            const response = await instance.post("/groups",
+            await instance.post("/groups",
                 { name: groupName, members, description: groupDescription, userId },
                 { headers: { Authorization: `Bearer ${token}` } });
 
-            console.log("Group created:", response.data);
             setSuccessMessage("Groupe créé avec succès !");
             fetchGroups();
             toggleGroupModal();
@@ -191,300 +190,28 @@ export default function MyAccount({ navigation }) {
                 <Ionicons name="add" size={24} color="white" />
             </TouchableOpacity>
 
-            <Modal
-                visible={showIbanModal}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={toggleIbanModal}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Entrer les informations de l'IBAN</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="IBAN"
-                            value={iban}
-                            onChangeText={setIban}
-                        />
-                        {loading ? (
-                            <ActivityIndicator size="large" color="#0000ff" />
-                        ) : (
-                            <>
-                                <TouchableOpacity style={styles.orangeButton} onPress={() => {
-                                    updateIban().then();
-                                    toggleIbanModal();
-                                    console.log("errorMessage", errorMessage)
-                                }}>
-                                    <Text style={styles.orangeButtonText}>Soumettre</Text>
-                                </TouchableOpacity>
-                                {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-                                {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
-                            </>
-                        )}
-                        <TouchableOpacity style={[styles.closeButton, styles.orangeButton]} onPress={toggleIbanModal}>
-                            <Text style={styles.orangeButtonText}>Fermer</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-
-            <Modal
-                visible={showOptionsModal}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={toggleOptionsModal}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <TouchableOpacity style={[styles.menuItem, styles.orangeButton]} onPress={() => { toggleOptionsModal(); toggleGroupModal(); }}>
-                            <Text style={styles.orangeButtonText}>Créer un groupe</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={[styles.menuItem, styles.orangeButton]} onPress={toggleOptionsModal}>
-                            <Text style={styles.orangeButtonText}>Fermer</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
-
-            <Modal
-                visible={showGroupModal}
-                transparent={true}
-                animationType="slide"
-                onRequestClose={toggleGroupModal}
-            >
-                <View style={styles.modalContainer}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Créer un groupe</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Nom du groupe"
-                            value={groupName}
-                            onChangeText={setGroupName}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Description"
-                            value={groupDescription}
-                            onChangeText={setGroupDescription}
-                        />
-                        {loading ? (
-                            <ActivityIndicator size="large" color="#0000ff" />
-                        ) : (
-                            <>
-                                <TouchableOpacity style={styles.orangeButton} onPress={createGroup}>
-                                    <Text style={styles.orangeButtonText}>Soumettre</Text>
-                                </TouchableOpacity>
-                                {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
-                                {successMessage ? <Text style={styles.successText}>{successMessage}</Text> : null}
-                            </>
-                        )}
-                        <TouchableOpacity style={[styles.closeButton, styles.orangeButton]} onPress={toggleGroupModal}>
-                            <Text style={styles.orangeButtonText}>Fermer</Text>
-                        </TouchableOpacity>
-                    </View>
-                </View>
-            </Modal>
+            <AccountModals
+                showIbanModal={showIbanModal}
+                setShowIbanModal={setShowIbanModal}
+                showGroupModal={showGroupModal}
+                setShowGroupModal={setShowGroupModal}
+                showOptionsModal={showOptionsModal}
+                setShowOptionsModal={setShowOptionsModal}
+                iban={iban}
+                setIban={setIban}
+                groupName={groupName}
+                setGroupName={setGroupName}
+                groupDescription={groupDescription}
+                setGroupDescription={setGroupDescription}
+                updateIban={updateIban}
+                createGroup={createGroup}
+                errorMessage={errorMessage}
+                successMessage={successMessage}
+                loading={loading}
+                toggleIbanModal={toggleIbanModal}
+                toggleGroupModal={toggleGroupModal}
+                toggleOptionsModal={toggleOptionsModal}
+            />
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    scrollContainer: {
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingBottom: 60,
-    },
-    cardContainer: {
-        width: '100%',
-        alignItems: 'center',
-        marginVertical: 10,
-    },
-    card: {
-        width: '90%',
-        padding: 20,
-        borderRadius: 10,
-        backgroundColor: 'white',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.25,
-        shadowRadius: 3.84,
-        elevation: 5,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    ibanText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-    },
-    groupInfoContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    memberCount: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginRight: 5,
-    },
-    groupDetails: {
-        flex: 1,
-    },
-    groupTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 5,
-    },
-    welcomeContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginTop: 20,
-        marginBottom: 20,
-    },
-    welcomeText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginRight: 5,
-    },
-    userDataText: {
-        fontSize: 20,
-    },
-    ibanSectionContainer: {
-        width: '100%',
-        alignItems: 'center',
-    },
-    titleContainer: {
-        marginTop: 100,
-        alignItems: 'center',
-    },
-    titleText: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
-    newButtonContainer: {
-        marginTop: 30,
-        width: '100%',
-        alignItems: 'center',
-    },
-    newButton: {
-        width: '70%',
-        height: 100,
-        backgroundColor: '#ccc',
-        borderRadius: 10,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    buttonText: {
-        fontSize: 20,
-        color: 'black',
-    },
-    groupText: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginTop: 30,
-        marginBottom: 10,
-        textAlign: 'center',
-    },
-    button: {
-        position: 'absolute',
-        bottom: 20,
-        right: 20,
-        width: 50,
-        height: 50,
-        backgroundColor: '#D27E00',
-        borderRadius: 25,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    editButton: {
-        marginTop: 10,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        backgroundColor: '#007bff',
-        borderRadius: 5,
-    },
-    editButtonText: {
-        color: 'white',
-        fontSize: 14,
-    },
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 10,
-        width: '80%',
-        alignItems: 'center',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 20,
-    },
-    input: {
-        width: '100%',
-        padding: 10,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        marginBottom: 20,
-    },
-    submitButton: {
-        backgroundColor: '#D27E00',
-        padding: 10,
-        borderRadius: 5,
-        width: '100%',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    submitButtonText: {
-        color: 'white',
-        fontSize: 16,
-    },
-    closeButton: {
-        padding: 10,
-        width: '100%',
-        alignItems: 'center',
-        marginTop: 10,
-    },
-    closeButtonText: {
-        color: '#007bff',
-        fontSize: 16,
-    },
-    menuItem: {
-        paddingVertical: 10,
-        paddingHorizontal: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#ccc',
-    },
-    menuItemText: {
-        fontSize: 18,
-    },
-    errorText: {
-        color: 'red',
-        marginBottom: 10,
-    },
-    successText: {
-        color: 'green',
-        marginBottom: 10,
-    },
-    orangeButton: {
-        backgroundColor: '#D27E00',
-        padding: 10,
-        borderRadius: 5,
-        width: '100%',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    orangeButtonText: {
-        color: 'white',
-        fontSize: 16,
-    },
-});

@@ -1,32 +1,6 @@
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
-    modalContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalContent: {
-        backgroundColor: 'white',
-        padding: 20,
-        borderRadius: 10,
-        width: '80%',
-        alignItems: 'center',
-    },
-    modalTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 20,
-    },
-    input: {
-        width: '100%',
-        padding: 10,
-        borderWidth: 1,
-        borderColor: '#ccc',
-        borderRadius: 5,
-        marginBottom: 20,
-    },
     submitButton: {
         backgroundColor: '#D27E00',
         padding: 10,
@@ -39,24 +13,13 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 16,
     },
-    closeButton: {
-        padding: 10,
-        width: '100%',
-        alignItems: 'center',
-        marginTop: 10,
-    },
+
     closeButtonText: {
         color: '#007bff',
         fontSize: 16,
     },
-    errorText: {
-        color: 'red',
-        marginBottom: 10,
-    },
-    successText: {
-        color: 'green',
-        marginBottom: 10,
-    },
+
+
     expenseForm: {
         width: '100%',
         marginBottom: 20,
@@ -113,6 +76,64 @@ const styles = StyleSheet.create({
     cancelButtonText: {
         color: 'black',
         fontSize: 16,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        padding: 20,
+        borderRadius: 10,
+        width: '80%',
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 20,
+    },
+    input: {
+        width: '100%',
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        marginBottom: 20,
+    },
+    orangeButton: {
+        backgroundColor: '#D27E00',
+        padding: 10,
+        borderRadius: 5,
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    orangeButtonText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    closeButton: {
+        padding: 10,
+        width: '100%',
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    errorText: {
+        color: 'red',
+        marginBottom: 10,
+    },
+    successText: {
+        color: 'green',
+        marginBottom: 10,
+    },
+    menuItem: {
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ccc',
     },
 });
 

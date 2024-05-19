@@ -42,7 +42,7 @@ const GroupLists = ({
             const memberResponses = await Promise.all(memberPromises);
             setMembers(memberResponses.map(res => res.data));
         } catch (error) {
-            console.error("Erreur lors de la récupération des membres :", error);
+            console.log("Erreur lors de la récupération des membres :", error);
         } finally {
             setLoading(false);
         }
@@ -60,7 +60,7 @@ const GroupLists = ({
             const sortedExpenses = response.data.sort((a, b) => new Date(b.date) - new Date(a.date));
             setExpenses(sortedExpenses);
         } catch (error) {
-            console.error("Erreur lors de la récupération des dépenses :", error);
+            console.log("Erreur lors de la récupération des dépenses :", error);
         } finally {
             setLoading(false);
         }
