@@ -43,6 +43,12 @@ export default function MyGroup({ route, navigation }) {
                                 <TouchableOpacity style={styles.optionButton} onPress={handleLeaveGroupPress}>
                                     <Text style={styles.optionButtonText}>Quitter le groupe</Text>
                                 </TouchableOpacity>
+                                <TouchableOpacity style={styles.optionButton} onPress={() => handleDownload('csv')}>
+                                    <Text style={styles.optionButtonText}>Télécharger CSV</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.optionButton} onPress={() => handleDownload('pdf')}>
+                                    <Text style={styles.optionButtonText}>Télécharger PDF</Text>
+                                </TouchableOpacity>
                             </View>
                         )}
                     </View>
@@ -92,6 +98,20 @@ export default function MyGroup({ route, navigation }) {
         } finally {
             setLoading(false);
             setShowLeaveGroupModal(false);
+        }
+    };
+
+    const handleDownload = async (format) => {
+        try {
+            const token = await AsyncStorage.getItem('token');
+            const response = await instance.get(`/groups/export/${groupId}?format=${format}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+                responseType: 'blob',
+            });
+        } catch (error) {
+            console.error("Erreur lors du téléchargement du fichier :", error);
         }
     };
 
@@ -145,6 +165,7 @@ export default function MyGroup({ route, navigation }) {
                 loading={loading}
                 setLoading={setLoading}
                 confirmLeaveGroup={confirmLeaveGroup}
+                handleDownload={handleDownload}
             />
         </View>
     );

@@ -1,82 +1,6 @@
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
-    submitButton: {
-        backgroundColor: '#D27E00',
-        padding: 10,
-        borderRadius: 5,
-        width: '100%',
-        alignItems: 'center',
-        marginBottom: 10,
-    },
-    submitButtonText: {
-        color: 'white',
-        fontSize: 16,
-    },
-
-    closeButtonText: {
-        color: '#007bff',
-        fontSize: 16,
-    },
-
-
-    expenseForm: {
-        width: '100%',
-        marginBottom: 20,
-    },
-    expenseContainer: {
-        width: '100%',
-        marginBottom: 20,
-    },
-    addButton: {
-        backgroundColor: '#D27E00',
-        padding: 10,
-        borderRadius: 5,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: 10,
-    },
-    addButtonText: {
-        color: 'white',
-        fontSize: 16,
-    },
-    expenseItem: {
-        width: '100%',
-        marginBottom: 10,
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-    },
-    expenseText: {
-        fontSize: 16,
-        color: '#7F7F7F',
-    },
-    modalButtons: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        width: '100%',
-    },
-    confirmButton: {
-        backgroundColor: '#D27E00',
-        padding: 10,
-        borderRadius: 5,
-        width: '40%',
-        alignItems: 'center',
-    },
-    confirmButtonText: {
-        color: 'white',
-        fontSize: 16,
-    },
-    cancelButton: {
-        backgroundColor: '#ccc',
-        padding: 10,
-        borderRadius: 5,
-        width: '40%',
-        alignItems: 'center',
-    },
-    cancelButtonText: {
-        color: 'black',
-        fontSize: 16,
-    },
     modalContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -134,6 +58,63 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         borderBottomWidth: 1,
         borderBottomColor: '#ccc',
+    },
+    expenseForm: {
+        width: '100%',
+        marginBottom: 20,
+    },
+    expenseContainer: {
+        width: '100%',
+        marginBottom: 20,
+    },
+    addButton: {
+        backgroundColor: '#D27E00',
+        padding: 10,
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    addButtonText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    expenseItem: {
+        width: '100%',
+        marginBottom: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    expenseText: {
+        fontSize: 16,
+        color: '#7F7F7F',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        justifyContent: 'space-around',
+        width: '100%',
+    },
+    confirmButton: {
+        backgroundColor: '#D27E00',
+        padding: 10,
+        borderRadius: 5,
+        width: '40%',
+        alignItems: 'center',
+    },
+    confirmButtonText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    cancelButton: {
+        backgroundColor: '#ccc',
+        padding: 10,
+        borderRadius: 5,
+        width: '40%',
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        color: 'black',
+        fontSize: 16,
     },
 });
 

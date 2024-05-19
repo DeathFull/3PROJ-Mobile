@@ -18,7 +18,8 @@ const GroupModals = ({
                          fetchGroupData,
                          loading,
                          setLoading,
-                         confirmLeaveGroup
+                         confirmLeaveGroup,
+                         handleDownload
                      }) => {
     const [email, setEmail] = useState('');
     const [name, setName] = useState('');
