@@ -16,7 +16,7 @@ export const checkLoggedIn = async () => {
                         console.log("userData stored");
                     })
                     .catch(error => {
-                        console.log("error storing userData");
+                        console.log("error storing userData",error);
                     });
                 return { isLoggedIn: true, userData: response.data };
             } catch (error) {
