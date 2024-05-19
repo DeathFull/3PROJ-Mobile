@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 import instance from '../api/ApiConfig';
@@ -25,6 +25,9 @@ export default function MyGroup({ route, navigation }) {
     const [successMessage, setSuccessMessage] = useState('');
     const [showBalanceModal, setShowBalanceModal] = useState(false);
     const [selectedUserIban, setSelectedUserIban] = useState('');
+    const [expenseData, setExpenseData] = useState([]);
+    const [currentEmail, setCurrentEmail] = useState('');
+    const [currentPercentage, setCurrentPercentage] = useState('');
 
     useEffect(() => {
         fetchGroupData();
@@ -46,9 +49,6 @@ export default function MyGroup({ route, navigation }) {
                                 </TouchableOpacity>
                                 <TouchableOpacity style={styles.optionButton} onPress={leaveGroup}>
                                     <Text style={styles.optionButtonText}>Quitter le groupe</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity style={styles.optionButton} onPress={() => navigation.navigate('GroupStatsScreen', { groupId })}>
-                                    <Text style={styles.optionButtonText}>Afficher stats</Text>
                                 </TouchableOpacity>
                             </View>
                         )}
@@ -215,6 +215,7 @@ export default function MyGroup({ route, navigation }) {
                     date: new Date().toString(),
                     justification: justification,
                     category: category,
+                    expenseData: expenseData
                 }, {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -227,6 +228,7 @@ export default function MyGroup({ route, navigation }) {
                 setAmount('');
                 setCategory('');
                 setJustification('');
+                setExpenseData([]);
                 await fetchExpenses();
             } else {
                 setErrorMessage('Erreur: Utilisateur non trouvé');
@@ -239,10 +241,22 @@ export default function MyGroup({ route, navigation }) {
             setShowAddExpenseModal(false);
         }
     };
+
+    const handleAddExpenseField = () => {
+        if (currentEmail && currentPercentage) {
+            setExpenseData([...expenseData, { email: currentEmail, percentage: currentPercentage }]);
+            setCurrentEmail('');
+            setCurrentPercentage('');
+        } else {
+            Alert.alert('Erreur', 'Veuillez entrer une adresse e-mail et un pourcentage.');
+        }
+    };
+
     const handleBalancePress = (user) => {
         setSelectedUserIban(user.iban || 'IBAN non spécifié');
         setShowBalanceModal(true);
     };
+
     const renderContent = () => {
         switch (selectedPage) {
             case 'Dépenses':
@@ -377,31 +391,56 @@ export default function MyGroup({ route, navigation }) {
                 <View style={styles.modalContainer}>
                     <View style={styles.modalContent}>
                         <Text style={styles.modalTitle}>Ajouter une dépense</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Nom"
-                            value={name}
-                            onChangeText={setName}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Description"
-                            value={description}
-                            onChangeText={setDescription}
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Montant"
-                            value={amount}
-                            onChangeText={setAmount}
-                            keyboardType="numeric"
-                        />
-                        <TextInput
-                            style={styles.input}
-                            placeholder="Catégorie"
-                            value={category}
-                            onChangeText={setCategory}
-                        />
+                        <View style={styles.expenseForm}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Nom"
+                                value={name}
+                                onChangeText={setName}
+                            />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Description"
+                                value={description}
+                                onChangeText={setDescription}
+                            />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Montant"
+                                value={amount}
+                                onChangeText={setAmount}
+                                keyboardType="numeric"
+                            />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Catégorie"
+                                value={category}
+                                onChangeText={setCategory}
+                            />
+                        </View>
+                        <View style={styles.expenseContainer}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Email"
+                                value={currentEmail}
+                                onChangeText={setCurrentEmail}
+                            />
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Pourcentage"
+                                value={currentPercentage}
+                                keyboardType="numeric"
+                                onChangeText={setCurrentPercentage}
+                            />
+                            <TouchableOpacity style={styles.addButton} onPress={handleAddExpenseField}>
+                                <Text style={styles.addButtonText}>Ajouter</Text>
+                            </TouchableOpacity>
+                        </View>
+                        {expenseData.map((expense, index) => (
+                            <View key={index} style={styles.expenseItem}>
+                                <Text style={styles.expenseText}>{expense.email} - {expense.percentage}%</Text>
+                            </View>
+                        ))}
                         <TextInput
                             style={styles.input}
                             placeholder="Justification"
@@ -686,5 +725,31 @@ const styles = StyleSheet.create({
     balanceAmount: {
         fontSize: 18,
         color: 'red',
+    },
+    expenseContainer: {
+        width: '100%',
+        marginBottom: 20,
+    },
+    addButton: {
+        backgroundColor: '#D27E00',
+        padding: 10,
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 10,
+    },
+    addButtonText: {
+        color: 'white',
+        fontSize: 16,
+    },
+    expenseItem: {
+        width: '100%',
+        marginBottom: 10,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+    },
+    expenseText: {
+        fontSize: 16,
+        color: '#7F7F7F',
     },
 });
