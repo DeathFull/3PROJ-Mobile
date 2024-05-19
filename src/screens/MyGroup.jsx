@@ -227,6 +227,31 @@ export default function MyGroup({ route, navigation }) {
         }
     };
 
+    const handleDebt = async (refund) => {
+        try {
+            const newDebt = { refunderId: refund.refunderId._id, amount: -refund.amount };
+            const newRefund = { payerId: refund.receiverId._id, refunderId: refund.refunderId._id, idGroup: groupId, amount: refund.amount, date: new Date() };
+            console.log("handledebt",newDebt,newRefund);
+            const token = await AsyncStorage.getItem('token');
+
+            await instance.put(`/debts/${groupId}`, newDebt, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            await instance.post(`/refunds/`, newRefund, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            await getGroupDebts();
+
+        } catch (error) {
+            console.log("erreur pour la dette");
+        }
+    };
     const checkEmailExists = async (email) => {
         const token = await AsyncStorage.getItem('token');
         try {
@@ -372,6 +397,9 @@ export default function MyGroup({ route, navigation }) {
                                     </View>
                                     <Text style={styles.refundDescription}>{refund.refunderId.email}</Text>
                                 </View>
+                                <TouchableOpacity onPress={() => handleDebt(refund)}>
+                                    <Text style={styles.handleDebtButtonText}>Gérer la dette</Text>
+                                </TouchableOpacity>
                             </View>
                         ))}
                     </ScrollView>
@@ -946,6 +974,10 @@ const styles = StyleSheet.create({
     },
     cancelButtonText: {
         color: 'black',
+        fontSize: 16,
+    },
+    handleDebtButtonText: {
+        color: '#007bff',
         fontSize: 16,
     },
 });
