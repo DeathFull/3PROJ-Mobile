@@ -1,11 +1,11 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import mime from 'mime';
 import instance from '../api/ApiConfig';
 
-export default function EditProfileScreen({navigation}) {
+export default function EditProfileScreen({ navigation }) {
   const [userData, setUserData] = useState(null);
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
@@ -29,7 +29,7 @@ export default function EditProfileScreen({navigation}) {
         setFirstname(user.firstname);
         setLastname(user.lastname);
         setEmail(user.email);
-        setAvatar(user.avatar || null);
+        setAvatar(user.avatar ? `${user.avatar}?t=${new Date().getTime()}` : null);
       } catch (error) {
         console.error('Failed to load user data:', error);
       }
@@ -67,35 +67,28 @@ export default function EditProfileScreen({navigation}) {
         },
       });
 
-      // Update avatar if a new one is selected
-      if (avatar && avatar !== userData.avatar) {
-        const newImageUri = "file:///" + avatar.split("file:/").join("");
-        const mimeType = mime.getType(newImageUri);
+      const newImageUri = "file:///" + avatar.split("file:/").join("");
+      const mimeType = mime.getType(newImageUri);
 
-        const formData = new FormData();
-        formData.append('file', {
-          uri: newImageUri,
-          name: newImageUri.split("/").pop(),
-          type: mimeType || 'application/octet-stream'
-        });
+      const formData = new FormData();
+      formData.append('file', {
+        uri: newImageUri,
+        name: newImageUri.split("/").pop(),
+        type: mimeType || 'application/octet-stream'
+      });
 
-        const response = await instance.post(`/users/updateImage`, formData, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        });
-        console.log("postimage", response.data)
-        console.log("user", userData)
-        // Fetch updated user data from API after updating the avatar
-        const updatedUser = await fetchUpdatedUserData();
-        setUserData(updatedUser);
-        await AsyncStorage.setItem('userData', JSON.stringify(updatedUser));
-      } else {
-        setUserData(updatedUserData);
-        await AsyncStorage.setItem('userData', JSON.stringify(updatedUserData));
-      }
+      const response = await instance.post(`/users/updateImage`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
 
+      // Fetch updated user data from API after updating the avatar
+      const updatedUser = await fetchUpdatedUserData();
+      setUserData(updatedUser);
+      setAvatar(updatedUser.avatar ? `${updatedUser.avatar}?t=${new Date().getTime()}` : null);
+      await AsyncStorage.setItem('userData', JSON.stringify(updatedUser));
       navigation.goBack();
     } catch (error) {
       console.error('Failed to save user data:', error);
@@ -106,7 +99,7 @@ export default function EditProfileScreen({navigation}) {
   };
 
   const handlePickImage = async () => {
-    const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permission Denied', 'Sorry, we need camera roll permissions to make this work!');
       return;
@@ -120,58 +113,57 @@ export default function EditProfileScreen({navigation}) {
     });
 
     if (!result.canceled) {
-      const {uri} = result.assets[0];
-      console.log('Image selected:', uri);  // Debugging statement
+      const { uri } = result.assets[0];
+      console.log('Image selected:', uri);
       setAvatar(uri);
     } else {
-      console.log('Image selection canceled');  // Debugging statement
+      console.log('Image selection canceled');
     }
   };
 
   if (!userData || loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text>{loading ? 'Saving...' : 'Loading...'}</Text>
-      </View>
+        <View style={styles.loadingContainer}>
+          <Text>{loading ? 'Saving...' : 'Loading...'}</Text>
+        </View>
     );
   }
-  console.log("avatar", avatar)
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Modifier le profil</Text>
-      <TouchableOpacity onPress={handlePickImage}>
-        {avatar ? (
-          <Image source={{uri: avatar}} style={styles.profileImage}/>
-        ) : (
-          <View style={styles.profileImagePlaceholder}>
-            <Text style={styles.profileImagePlaceholderText}>Ajouter une photo de profil</Text>
-          </View>
-        )}
-      </TouchableOpacity>
-      <TextInput
-        style={styles.input}
-        placeholder="Prénom"
-        value={firstname}
-        onChangeText={setFirstname}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Nom de famille"
-        value={lastname}
-        onChangeText={setLastname}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TouchableOpacity style={styles.button} onPress={handleSaveChanges}>
-        <Text style={styles.buttonText}>Enregistrer les modifications</Text>
-      </TouchableOpacity>
-    </View>
+      <View style={styles.container}>
+        <Text style={styles.title}>Modifier le profil</Text>
+        <TouchableOpacity onPress={handlePickImage}>
+          {avatar ? (
+              <Image source={{ uri: avatar }} style={styles.profileImage} />
+          ) : (
+              <View style={styles.profileImagePlaceholder}>
+                <Text style={styles.profileImagePlaceholderText}>Ajouter une photo de profil</Text>
+              </View>
+          )}
+        </TouchableOpacity>
+        <TextInput
+            style={styles.input}
+            placeholder="Prénom"
+            value={firstname}
+            onChangeText={setFirstname}
+        />
+        <TextInput
+            style={styles.input}
+            placeholder="Nom de famille"
+            value={lastname}
+            onChangeText={setLastname}
+        />
+        <TextInput
+            style={styles.input}
+            placeholder="Email"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+        />
+        <TouchableOpacity style={styles.button} onPress={handleSaveChanges}>
+          <Text style={styles.buttonText}>Enregistrer les modifications</Text>
+        </TouchableOpacity>
+      </View>
   );
 }
 

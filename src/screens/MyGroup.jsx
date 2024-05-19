@@ -47,6 +47,9 @@ export default function MyGroup({ route, navigation }) {
                                 <TouchableOpacity style={styles.optionButton} onPress={leaveGroup}>
                                     <Text style={styles.optionButtonText}>Quitter le groupe</Text>
                                 </TouchableOpacity>
+                                <TouchableOpacity style={styles.optionButton} onPress={() => navigation.navigate('GroupStatsScreen', { groupId })}>
+                                    <Text style={styles.optionButtonText}>Afficher stats</Text>
+                                </TouchableOpacity>
                             </View>
                         )}
                     </View>

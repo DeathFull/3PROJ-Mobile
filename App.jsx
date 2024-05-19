@@ -10,6 +10,9 @@ import MyAccount from "./src/screens/MyAccount";
 import MyGroup from "./src/screens/MyGroup";
 import { View, Text, ActivityIndicator } from 'react-native';
 import EditProfileScreen from "./src/screens/EditProfileScreen";
+import GroupStatsScreen from "./src/screens/GroupStatsScreen" ;
+import UserStatsScreen from "./src/screens/UserStatsScreen";
+
 
 const Stack = createStackNavigator();
 
@@ -54,7 +57,19 @@ export default function App() {
                             },
                             headerTintColor: 'white',
                         }}/>
+                        <Stack.Screen name="GroupStatsScreen" component={GroupStatsScreen} screenOptions={{
+                            headerStyle: {
+                                backgroundColor: '#D27E00',
+                            },
+                            headerTintColor: 'white',
+                        }}/>
                         <Stack.Screen name="MyGroup" component={MyGroup} screenOptions={{
+                            headerStyle: {
+                                backgroundColor: '#D27E00',
+                            },
+                            headerTintColor: 'white',
+                        }}/>
+                        <Stack.Screen name="UserStatsScreen" component={UserStatsScreen} screenOptions={{
                             headerStyle: {
                                 backgroundColor: '#D27E00',
                             },
@@ -67,6 +82,18 @@ export default function App() {
                         <Stack.Screen name="LoginPage" component={LoginPage} options={{ headerShown: false }} />
                         <Stack.Screen name="MainDrawer" component={MainDrawer} options={{ headerShown: false }} />
                         <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{ headerShown: false }} />
+                        <Stack.Screen name="UserStatsScreen" component={UserStatsScreen} screenOptions={{
+                            headerStyle: {
+                                backgroundColor: '#D27E00',
+                            },
+                            headerTintColor: 'white',
+                        }}/>
+                        <Stack.Screen name="GroupStatsScreen" component={GroupStatsScreen} screenOptions={{
+                            headerStyle: {
+                                backgroundColor: '#D27E00',
+                            },
+                            headerTintColor: 'white',
+                        }}/>
                         <Stack.Screen name="EditProfileScreen" component={EditProfileScreen} screenOptions={{
                             headerStyle: {
                                 backgroundColor: '#D27E00',

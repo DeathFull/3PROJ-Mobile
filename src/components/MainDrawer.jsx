@@ -2,7 +2,7 @@ import React from 'react';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import SettingsScreen from '../screens/SettingsScreen';
 import MyAccount from "../screens/MyAccount";
-
+import UserStatsScreen from "../screens/UserStatsScreen";
 const Drawer = createDrawerNavigator();
 // main drawer permettant de faire la navigation avec le burger dans le header
 export default function MainDrawer() {
@@ -17,6 +17,7 @@ export default function MainDrawer() {
         >
             <Drawer.Screen name="Mon Compte" component={MyAccount} />
             <Drawer.Screen name="Paramètres" component={SettingsScreen} />
+            <Drawer.Screen name="Statistiques" component={UserStatsScreen} />
         </Drawer.Navigator>
     );
 }
