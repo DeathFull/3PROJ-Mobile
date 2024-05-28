@@ -27,9 +27,7 @@ export default function UserStatsScreen({ navigation }) {
             const latestExpenses = sortedExpenses.slice(0, 10);
             setExpenses(latestExpenses);
 
-
             const groupIds = [...new Set(latestExpenses.map(expense => expense.idGroup))];
-            console.log(groupIds)
             const groupResponses = await Promise.all(groupIds.map(idGroup =>
                 instance.get(`/groups/${idGroup}`, {
                     headers: {
@@ -41,9 +39,12 @@ export default function UserStatsScreen({ navigation }) {
             const groups = {};
             groupResponses.forEach(response => {
                 groups[response.data._id] = response.data.name;
-
             });
             setGroups(groups);
+
+            navigation.setOptions({
+                title: "User Stats",
+            });
         } catch (error) {
             console.error("Erreur lors de la récupération des dépenses de l'utilisateur :", error);
         } finally {
@@ -51,28 +52,12 @@ export default function UserStatsScreen({ navigation }) {
         }
     };
 
-    const getLineChartData = () => {
-        const labels = [];
-        const data = [];
-
-        expenses.forEach(expense => {
-            labels.push(moment(expense.date).format('YYYY-MM-DD'));
-            data.push(expense.amount);
-        });
-
-        labels.reverse();
-        data.reverse();
-
-        return {
-            labels,
-            datasets: [
-                {
-                    data,
-                    strokeWidth: 2,
-                    color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // Couleur de la ligne en bleu
-                }
-            ]
-        };
+    const generateColor = () => {
+        let color;
+        do {
+            color = `#${Math.floor(Math.random() * 16777215).toString(16)}`;
+        } while (color === '#ffffff' || color === '#fff');
+        return color;
     };
 
     const getPieChartData = () => {
@@ -88,38 +73,32 @@ export default function UserStatsScreen({ navigation }) {
         return Object.keys(groupTotals).map(groupName => ({
             name: groupName,
             amount: groupTotals[groupName],
-            color: `#${Math.floor(Math.random() * 16777215).toString(16)}`,
+            color: generateColor(),
             legendFontColor: "#7F7F7F",
             legendFontSize: 15,
         }));
     };
 
-    const chartConfig = {
-        backgroundGradientFrom: "#ffffff",
-        backgroundGradientFromOpacity: 0,
-        backgroundGradientTo: "#ffffff",
-        backgroundGradientToOpacity: 0,
-        color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // Couleur de la ligne en bleu
-        strokeWidth: 2,
-        barPercentage: 0.5,
-        decimalPlaces: 2, // optional, defaults to 2dp
-        labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
-        style: {
-            borderRadius: 16,
-        },
-        propsForDots: {
-            r: "6",
-            strokeWidth: "2",
-            stroke: "#0000ff", // Couleur des points en bleu
-        }
+    const getLineChartData = () => {
+        const labels = expenses.map(expense => moment(expense.date).format('DD/MM'));
+        const data = expenses.map(expense => expense.amount);
+
+        return {
+            labels,
+            datasets: [
+                {
+                    data,
+                    strokeWidth: 2,
+                },
+            ],
+        };
     };
 
     const screenWidth = Dimensions.get('window').width;
-    const chartWidth = screenWidth - 40 + expenses.length * 50; // Ajustement de la largeur pour espacer les points
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
-            <Text style={styles.title}>Vos 10 dernières dépenses</Text>
+            <Text style={styles.title}>Vos 10 dernières opérations</Text>
             {loading ? (
                 <ActivityIndicator size="large" color="#0000ff" />
             ) : expenses.length === 0 ? (
@@ -131,30 +110,82 @@ export default function UserStatsScreen({ navigation }) {
                     <ScrollView horizontal>
                         <LineChart
                             data={getLineChartData()}
-                            width={chartWidth}
+                            width={screenWidth * 2}  // Double the width to allow horizontal scrolling
                             height={220}
-                            chartConfig={chartConfig}
+                            chartConfig={lineChartConfig}
                             bezier
+                            style={styles.chart}
+                            renderDotContent={({ x, y, index }) => (
+                                <Text key={index} style={{ position: 'absolute', top: y - -2, left: x - -5, fontSize: 10, color: '#0000ff' }}>
+                                    {expenses[index].amount}
+                                </Text>
+                            )}
+                        />
+                    </ScrollView>
+                    <View style={styles.separator} />
+                    <Text style={styles.title}>Vos opérations par groupes</Text>
+                    <ScrollView horizontal>
+                        <PieChart
+                            data={getPieChartData()}
+                            width={screenWidth * 2}  // Double the width to allow horizontal scrolling
+                            height={220}
+                            chartConfig={pieChartConfig}
+                            accessor="amount"
+                            backgroundColor="transparent"
+                            paddingLeft="15"
+                            absolute
                             style={styles.chart}
                         />
                     </ScrollView>
-                    <Text style={styles.title}>Répartition des dépenses par groupe</Text>
-                    <PieChart
-                        data={getPieChartData()}
-                        width={screenWidth - 40}
-                        height={220}
-                        chartConfig={chartConfig}
-                        accessor="amount"
-                        backgroundColor="transparent"
-                        paddingLeft="15"
-                        absolute
-                        style={styles.chart}
-                    />
+                    <View style={styles.legendContainer}>
+                        {getPieChartData().map((item, index) => (
+                            <View key={index} style={styles.legendItem}>
+                                <View style={[styles.colorBox, { backgroundColor: item.color }]} />
+                                <Text
+                                    style={styles.legendText}
+                                    numberOfLines={1}
+                                    ellipsizeMode="tail"
+                                >
+                                    {item.name}
+                                </Text>
+                            </View>
+                        ))}
+                    </View>
                 </>
             )}
         </ScrollView>
     );
 }
+
+const lineChartConfig = {
+    backgroundGradientFrom: "#ffffff",
+    backgroundGradientFromOpacity: 0,
+    backgroundGradientTo: "#ffffff",
+    backgroundGradientToOpacity: 0,
+    color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`, // Couleur de la ligne en bleu
+    strokeWidth: 2,
+    barPercentage: 0.5,
+    decimalPlaces: 2, // optional, defaults to 2dp
+    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    style: {
+        borderRadius: 16,
+    },
+    propsForDots: {
+        r: "6",
+        strokeWidth: "2",
+        stroke: "#0000ff", // Couleur des points en bleu
+    },
+};
+
+const pieChartConfig = {
+    backgroundGradientFrom: "#1E2923",
+    backgroundGradientFromOpacity: 0,
+    backgroundGradientTo: "#08130D",
+    backgroundGradientToOpacity: 0.5,
+    color: (opacity = 1) => `rgba(26, 255, 146, ${opacity})`,
+    strokeWidth: 2,
+    barPercentage: 0.5,
+};
 
 const styles = StyleSheet.create({
     container: {
@@ -171,8 +202,30 @@ const styles = StyleSheet.create({
     },
     chart: {
         marginBottom: 20,
-        paddingRight: 30, // Ajout de padding à droite pour espacer les points
-        paddingLeft: 30,  // Ajout de padding à gauche pour espacer les points
+    },
+    legendContainer: {
+        width: '100%',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    legendItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: 2,
+        maxWidth: '90%',
+    },
+    colorBox: {
+        width: 15,
+        height: 15,
+        marginRight: 10,
+    },
+    legendText: {
+        flex: 1,
+        fontSize: 14,
+        color: '#7F7F7F',
+    },
+    separator: {
+        height: 20, // Espace entre les deux graphiques
     },
     noDataContainer: {
         flex: 1,
@@ -186,3 +239,4 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
 });
+

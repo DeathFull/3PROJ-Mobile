@@ -71,7 +71,7 @@ export default function MyGroup({ route, navigation }) {
         } else if (selectedPage === 'Solde') {
             fetchBalances();
         } else if (selectedPage === 'Remboursement') {
-            fetchRefunds(); // Appel de la fonction fetchRefunds lorsque l'onglet Remboursement est sélectionné
+            fetchRefunds();
         }
     }, [selectedPage]);
 
@@ -101,13 +101,16 @@ export default function MyGroup({ route, navigation }) {
         try {
             if (groupData && groupData.members) {
                 const token = await AsyncStorage.getItem('token');
-                const memberPromises = groupData.members.map(memberId =>
-                    instance.get(`/users/${memberId}`, {
+                console.log(groupData.members);
+                const memberPromises = groupData.members.map(member => {
+                    const memberId = member._id;
+
+                    return instance.get(`/users/${memberId}`, {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
-                    })
-                );
+                    });
+                });
                 const memberResponses = await Promise.all(memberPromises);
                 setMembers(memberResponses.map(res => res.data));
             }
@@ -298,7 +301,6 @@ export default function MyGroup({ route, navigation }) {
                 const userData = JSON.parse(storedUserData);
                 const userId = userData._id;
 
-                // Ajouter la dépense
                 await instance.post(`/expenses/`, {
                     idGroup: groupId,
                     idUser: userId,
@@ -315,7 +317,6 @@ export default function MyGroup({ route, navigation }) {
                     }
                 });
 
-                // Ajouter les dettes
                 for (const expense of expenseData) {
                     const refunder = await checkEmailExists(expense.email);
                     if (refunder) {
@@ -398,7 +399,7 @@ export default function MyGroup({ route, navigation }) {
                                     <Text style={styles.refundDescription}>{refund.refunderId.email}</Text>
                                 </View>
                                 <TouchableOpacity onPress={() => handleDebt(refund)}>
-                                    <Text style={styles.handleDebtButtonText}>Gérer la dette</Text>
+                                    <Text style={styles.handleDebtButtonText}>Payer la dette</Text>
                                 </TouchableOpacity>
                             </View>
                         ))}
@@ -695,13 +696,13 @@ const styles = StyleSheet.create({
         shadowRadius: 3.84,
         elevation: 5,
         zIndex: 10,
-        width: 200, // Set a fixed width for the container
+        width: 200,
     },
     optionButton: {
         paddingVertical: 10,
         paddingHorizontal: 15,
         borderBottomWidth: 1,
-        borderBottomColor: '#ccc', // Add a separator between options
+        borderBottomColor: '#ccc',
         justifyContent: 'center',
         alignItems: 'center',
     },
