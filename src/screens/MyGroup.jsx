@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, TextInput, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, TextInput, Modal, Alert, Image } from 'react-native';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons, AntDesign } from '@expo/vector-icons';
 import instance from '../api/ApiConfig';
@@ -11,7 +11,7 @@ export default function MyGroup({ route, navigation }) {
     const [members, setMembers] = useState([]);
     const [expenses, setExpenses] = useState([]);
     const [balances, setBalances] = useState([]);
-    const [refunds, setRefunds] = useState([]); // Ajout de l'état pour les remboursements
+    const [refunds, setRefunds] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showOptions, setShowOptions] = useState(false);
     const [showAddMemberModal, setShowAddMemberModal] = useState(false);
@@ -101,7 +101,6 @@ export default function MyGroup({ route, navigation }) {
         try {
             if (groupData && groupData.members) {
                 const token = await AsyncStorage.getItem('token');
-                console.log(groupData.members);
                 const memberPromises = groupData.members.map(member => {
                     const memberId = member._id;
 
@@ -160,12 +159,11 @@ export default function MyGroup({ route, navigation }) {
         setLoading(true);
         try {
             const token = await AsyncStorage.getItem('token');
-            const response = await instance.get(`/refunds/group/${groupId}`, {
+            const response = await instance.get(`/debts/${groupId}`, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
-            console.log(response.data);
             setRefunds(response.data);
         } catch (error) {
             console.error("Erreur lors de la récupération des remboursements :", error);
@@ -231,30 +229,38 @@ export default function MyGroup({ route, navigation }) {
     };
 
     const handleDebt = async (refund) => {
+        if (!refund || !refund.refunderId || !refund.receiverId) {
+            console.error("Invalid refund object:", refund);
+            return;
+        }
+
+        const newDebt = { refunderId: refund.refunderId._id, amount: -refund.amount };
+        const newRefund = {
+            payerId: refund.receiverId._id,
+            refunderId: refund.refunderId._id,
+            idGroup: groupId,
+            amount: refund.amount,
+            date: new Date()
+        };
+        const token = await AsyncStorage.getItem('token');
+
         try {
-            const newDebt = { refunderId: refund.refunderId._id, amount: -refund.amount };
-            const newRefund = { payerId: refund.receiverId._id, refunderId: refund.refunderId._id, idGroup: groupId, amount: refund.amount, date: new Date() };
-            console.log("handledebt",newDebt,newRefund);
-            const token = await AsyncStorage.getItem('token');
-
-            await instance.put(`/debts/${groupId}`, newDebt, {
+            await instance.put(`debts/${groupId}`, newDebt, {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                }
+            });
+            await instance.post(`refunds/`, newRefund, {
                 headers: {
                     Authorization: `Bearer ${token}`,
                 },
             });
-
-            await instance.post(`/refunds/`, newRefund, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            await getGroupDebts();
-
+            await fetchRefunds();
         } catch (error) {
-            console.log("erreur pour la dette");
+            console.error("Error handling debt:", error);
         }
     };
+
     const checkEmailExists = async (email) => {
         const token = await AsyncStorage.getItem('token');
         try {
@@ -377,26 +383,34 @@ export default function MyGroup({ route, navigation }) {
                                     <Text style={styles.expenseCategory}>{expense.category}</Text>
                                     <Text style={styles.expenseDate}>{new Date(expense.date).toLocaleDateString()}</Text>
                                 </View>
-                                <Text style={styles.expenseUser}>{expense.idUser.firstname} {expense.idUser.lastname.charAt(0)}.</Text>
+                                <View style={styles.expenseUserContainer}>
+                                    <Text style={styles.expenseUser}>{expense.idUser.firstname} {expense.idUser.lastname.charAt(0)}.</Text>
+                                    {expense.idUser.avatar && (
+                                        <Image
+                                            source={{ uri: expense.idUser.avatar }}
+                                            style={styles.avatar}
+                                        />
+                                    )}
+                                </View>
                             </View>
                         ))}
                     </ScrollView>
                 );
-            case 'Remboursement': // Rendu des remboursements de la même manière que les dépenses
+            case 'Remboursement':
                 return loading ? (
                     <ActivityIndicator size="large" color="#0000ff" />
                 ) : (
                     <ScrollView contentContainerStyle={styles.refundList}>
-                        {refunds.map(refund => refund.idUser !== null && (
+                        {refunds.map(refund => refund.idUser !== null && refund.amount > 0 && refund.refunderId._id === (
                             <View key={refund._id} style={styles.refundCard}>
                                 <View style={styles.refundDetails}>
-                                    <Text style={styles.refundName}>{refund.payerId.email}</Text>
+                                    <Text style={styles.refundName}>{refund.refunderId.email}</Text>
                                     <View style={{ flexDirection: 'row' }}>
                                         <Text style={styles.refundDescription}>{"doit  "}</Text>
                                         <Text style={styles.refundAmount}>{refund.amount} €</Text>
                                         <Text style={styles.refundDescription}>{" à "}</Text>
                                     </View>
-                                    <Text style={styles.refundDescription}>{refund.refunderId.email}</Text>
+                                    <Text style={styles.refundDescription}>{refund.receiverId.email}</Text>
                                 </View>
                                 <TouchableOpacity onPress={() => handleDebt(refund)}>
                                     <Text style={styles.handleDebtButtonText}>Payer la dette</Text>
@@ -420,6 +434,12 @@ export default function MyGroup({ route, navigation }) {
                                     <Text style={styles.balanceName}>{balance.idUser.firstname} {balance.idUser.lastname.charAt(0)}.</Text>
                                     <Text style={styles.balanceAmount}>-{balance.balance} €</Text>
                                 </View>
+                                {balance.idUser.avatar && (
+                                    <Image
+                                        source={{ uri: balance.idUser.avatar }}
+                                        style={styles.avatar}
+                                    />
+                                )}
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
@@ -433,6 +453,12 @@ export default function MyGroup({ route, navigation }) {
                             <View key={member._id} style={styles.memberCard}>
                                 <Text style={styles.memberName}>{member.firstname} {member.lastname}</Text>
                                 <Text>{member.email}</Text>
+                                {member.avatar && (
+                                    <Image
+                                        source={{ uri: member.avatar }}
+                                        style={styles.avatar}
+                                    />
+                                )}
                             </View>
                         ))}
                     </ScrollView>
@@ -980,5 +1006,10 @@ const styles = StyleSheet.create({
     handleDebtButtonText: {
         color: '#007bff',
         fontSize: 16,
+    },
+    avatar: {
+        width: 40,
+        height: 40,
+        borderRadius: 20,
     },
 });

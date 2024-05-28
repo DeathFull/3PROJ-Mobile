@@ -60,7 +60,6 @@ export default function EditProfileScreen({ navigation }) {
         avatar,
       };
 
-      // Update user data
       await instance.put(`/users`, updatedUserData, {
         headers: {
           Authorization: `Bearer ${token}`,

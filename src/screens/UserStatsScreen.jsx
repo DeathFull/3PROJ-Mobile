@@ -110,7 +110,7 @@ export default function UserStatsScreen({ navigation }) {
                     <ScrollView horizontal>
                         <LineChart
                             data={getLineChartData()}
-                            width={screenWidth * 2}  // Double the width to allow horizontal scrolling
+                            width={screenWidth * 2}
                             height={220}
                             chartConfig={lineChartConfig}
                             bezier
@@ -127,7 +127,7 @@ export default function UserStatsScreen({ navigation }) {
                     <ScrollView horizontal>
                         <PieChart
                             data={getPieChartData()}
-                            width={screenWidth * 2}  // Double the width to allow horizontal scrolling
+                            width={screenWidth * 2}
                             height={220}
                             chartConfig={pieChartConfig}
                             accessor="amount"
